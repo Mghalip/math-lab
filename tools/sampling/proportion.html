@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:,">
+<title>Sample Proportion Simulator — Sampling Distribution of p̂</title>
+<style>
+  :root{
+    --bg:#f6f5f0; --surface:#ffffff; --surface2:#efeee8; --ink:#1a1e1c; --muted:#6b726e; --line:#ddd9cf;
+    --teal:#0f766e; --teal-dark:#115e59; --amber:#d97706; --amber-bg:#fef3c7; --red:#dc2626; --green:#15803d;
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#121413; --surface:#1c1f1e; --surface2:#242826; --ink:#eceee9; --muted:#9aa39d; --line:#333835; --teal:#2dd4bf; --teal-dark:#5eead4; --amber-bg:#3a2e12; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family: ui-sans-system, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background:var(--bg); color:var(--ink); line-height:1.5}
+  button, input, select{ min-height:44px; font:inherit; }
+  .wrap{max-width:1180px;margin:0 auto;padding:20px 18px 36px}
+  header{padding:10px 0 18px;border-bottom:2px solid var(--ink); margin-bottom:20px}
+  h1{font-family: Georgia, 'Times New Roman', serif; font-weight:700; font-size:clamp(28px,5vw,42px); line-height:1.05; margin:0; letter-spacing:-.02em}
+  h1 em{font-style:italic; color:var(--teal)}
+  .sub{margin:10px 0 0; color:var(--muted); font-size:16px; max-width:680px}
+  .formula{display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; align-items:stretch}
+  .chip{background:var(--surface); border:1px solid var(--line); padding:8px 14px; border-radius:12px; font-family: Georgia, 'Times New Roman', serif; font-size:14.5px; display:inline-flex; align-items:center; gap:7px; line-height:1.2; flex-wrap:wrap}
+  .chip b{color:var(--teal); font-weight:700}
+  .chip .chip-label{font-family: ui-sans-system, system-ui, sans-serif; font-size:13px; font-weight:600; color:var(--muted); letter-spacing:.01em}
+  /* --- fraction & radical --- */
+  .frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; line-height:1.18; margin:0 1px; font-size:.94em}
+  .frac-num{display:block; padding:0 6px 2px; border-bottom:1.6px solid currentColor; white-space:nowrap}
+  .frac-den{display:block; padding:2px 6px 0; white-space:nowrap}
+  .frac-sm{font-size:.88em}
+  .sqrt{display:inline-flex; align-items:flex-start; vertical-align:middle; line-height:1}
+  .sqrt-sym{font-size:1.55em; line-height:.95; font-weight:400; transform:translateY(1px)}
+  .sqrt-body{border-top:1.7px solid currentColor; margin-top:3px; padding:2px 4px 0 1px; display:inline-flex; align-items:center}
+  .eq{display:inline-flex; align-items:center; gap:5px; flex-wrap:nowrap; white-space:nowrap}
+  .take .frac, .sample-meta .frac{font-size:.92em}
+  .sample-meta .eq{vertical-align:middle}
+  .take p .eq{vertical-align:middle}
+  .layout{display:grid; grid-template-columns:320px 1fr; gap:18px; align-items:start}
+  @media(max-width:860px){ .layout{grid-template-columns:1fr} }
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:18px}
+  .card h2{font-size:13px; letter-spacing:.12em; text-transform:uppercase; margin:0 0 14px; color:var(--muted); font-weight:700}
+  .label-row{display:flex; justify-content:space-between; align-items:baseline; margin:16px 0 6px}
+  .label-row:first-of-type{margin-top:2px}
+  .label-row label{font-weight:650; font-size:15px}
+  .val{font-family:ui-monospace, Menlo, monospace; font-weight:700; font-size:18px; color:var(--teal)}
+  input[type=range]{width:100%; accent-color:var(--teal); min-height:36px; padding:0}
+  .ticks{display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-top:-2px}
+  .n-presets{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px}
+  .n-presets button{flex:1; min-width:48px; padding:6px 4px; border-radius:999px; border:1px solid var(--line); background:var(--surface2); cursor:pointer; font-weight:600; font-size:14px}
+  .n-presets button.active{background:var(--ink); color:var(--bg); border-color:var(--ink)}
+  .theory{background:var(--surface2); border-radius:10px; padding:12px 14px; margin-top:18px; font-size:14px}
+  .theory div{display:flex; justify-content:space-between; padding:3px 0}
+  .theory span:last-child{font-family:ui-monospace, Menlo, monospace; font-weight:700}
+  .cond{margin-top:12px; padding:11px 12px; border-radius:10px; font-size:13.5px; line-height:1.45}
+  .cond.ok{background:#dcfce7; color:#14532d}
+  .cond.warn{background:var(--amber-bg); color:#78350f}
+  @media(prefers-color-scheme:dark){ .cond.ok{background:#14301f; color:#bbf7d0} .cond.warn{color:#fde68a} }
+  .actions{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:18px}
+  .actions button{border-radius:10px; border:1px solid var(--line); background:var(--surface); cursor:pointer; font-weight:700; padding:10px 6px}
+  .actions button.primary{background:var(--teal); color:#fff; border-color:var(--teal); grid-column:span 2; font-size:16px}
+  .actions button.primary:active{background:var(--teal-dark)}
+  .actions button:active{transform:translateY(1px)}
+  .actions button.reset{color:var(--red)}
+  .toggles{margin-top:14px; display:grid; gap:6px; font-size:14.5px}
+  .toggles label{display:flex; align-items:center; gap:10px; padding:8px 4px; cursor:pointer; min-height:40px}
+  .toggles input{width:20px;height:20px; accent-color:var(--teal)}
+  /* main */
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px}
+  @media(max-width:640px){ .stats{grid-template-columns:1fr 1fr} }
+  .stat{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 14px}
+  .stat .k{font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:700}
+  .stat .v{font-family:ui-monospace, Menlo, monospace; font-size:24px; font-weight:800; line-height:1.2; margin-top:2px}
+  .stat .s{font-size:12.5px; color:var(--muted)}
+  .stat.highlight .v{color:var(--teal)}
+  .chart-card{padding:16px 16px 10px}
+  .chart-head{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:6px}
+  .chart-head h2{margin:0}
+  .legend{display:flex; gap:14px; font-size:13px; color:var(--muted); flex-wrap:wrap}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin-right:5px}
+  canvas{width:100%; height:340px; display:block}
+  @media(max-width:640px){ canvas{height:280px} }
+  .empty-note{text-align:center; color:var(--muted); font-size:14px; padding:4px 0 10px}
+  /* last sample */
+  .sample-viz{margin-top:14px}
+  .dots{display:flex; flex-wrap:wrap; gap:5px; margin:10px 0 6px; min-height:22px}
+  .sdot{width:16px;height:16px;border-radius:50%; border:2px solid transparent}
+  .sdot.s{background:var(--teal)} .sdot.f{background:transparent; border-color:#b6bab3}
+  .sample-meta{font-size:14.5px} .sample-meta b{font-family:ui-monospace, Menlo, monospace}
+  .takeaways{margin-top:14px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px}
+  @media(max-width:760px){ .takeaways{grid-template-columns:1fr} }
+  .take{background:var(--surface); border-top:3px solid var(--teal); border-left:1px solid var(--line); border-right:1px solid var(--line); border-bottom:1px solid var(--line); border-radius:0 0 12px 12px; padding:14px}
+  .take b{display:block; margin-bottom:4px; font-size:15px}
+  .take p{margin:0; font-size:14px; color:var(--muted)}
+  footer{margin-top:18px; font-size:13px; color:var(--muted); text-align:center}
+</style>
+</head>
+<body><nav aria-label="选择模拟器" style="display:flex;flex-wrap:wrap;gap:.4em 1em;padding:.65em 1em;font:14px/1.5 system-ui"><strong aria-current="page">样本比例的抽样分布</strong><a href="proportion-difference.html">样本比例的差值的抽样分布</a><a href="mean.html">样本均值的抽样分布</a><a href="mean-difference.html">样本均值的差值的抽样分布</a></nav>
+<div class="wrap">
+  <header>
+    <h1>Sampling Distribution of <em>p̂</em></h1><p>第 1–2 页：用滑块选 n（含 25、160、400），每组抽 1,000 次，记录模拟均值和 SD。判断形状时可关闭正态曲线，先观察直方图。</p>
+    <p class="sub">Pick a true population proportion <b>p</b> and a sample size <b>n</b>. Each click draws random samples, calculates <b>p̂</b> for each one, and adds it to the histogram. Watch what happens to the center, spread, and shape.</p>
+    <div class="formula">
+      <span class="chip"><span class="chip-label">Definition</span><span class="eq"><i>p̂</i> = <span class="frac"><span class="frac-num"><i>X</i></span><span class="frac-den"><i>n</i></span></span></span><span style="font-family:ui-sans-system,system-ui,sans-serif;font-size:12.5px;color:var(--muted)">X = successes</span></span>
+      <span class="chip"><span class="chip-label">Mean of p̂</span><span class="eq">μ<sub>p̂</sub> = <i>p</i></span></span>
+      <span class="chip"><span class="chip-label">SD of p̂</span><span class="eq">σ<sub>p̂</sub> = <math><msqrt><mfrac><mrow><mi>p</mi><mo>(</mo><mn>1</mn><mo>−</mo><mi>p</mi><mo>)</mo></mrow><mi>n</mi></mfrac></msqrt></math></span></span>
+      <span class="chip"><span class="chip-label">Shape → Normal when</span><span class="eq" style="white-space:normal;flex-wrap:wrap"><span><i>np</i> ≥ 10</span><span>and</span><span><i>n</i>(1 − <i>p</i>) ≥ 10</span></span></span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Controls -->
+    <section class="card" aria-label="Controls">
+      <h2>Population &amp; Sample</h2>
+
+      <div class="label-row"><label for="pRange">True proportion &nbsp;p</label><span class="val" id="pVal">0.50</span></div>
+      <input type="range" id="pRange" min="0.02" max="0.98" step="0.01" value="0.50">
+      <div class="ticks"><span>0</span><span>0.25</span><span>0.50</span><span>0.75</span><span>1</span></div>
+      <p style="font-size:13px;color:var(--muted);margin:6px 0 0">Example: p = 0.50 could be “50% of all voters support a proposal.” Each sample asks n people.</p>
+
+      <div class="label-row"><label for="nRange">Sample size &nbsp;n</label><span class="val" id="nVal">30</span></div>
+      <input type="range" id="nRange" min="5" max="500" step="5" value="30">
+      <div class="n-presets" id="nPresets">
+        <button data-n="10">10</button><button data-n="30" class="active">30</button><button data-n="50">50</button><button data-n="100">100</button><button data-n="250">250</button>
+      </div>
+
+      <div class="theory">
+        <div><span>Theoretical mean μ<sub>p̂</sub></span><span id="thMean">0.500</span></div>
+        <div><span>Theoretical SD σ<sub>p̂</sub></span><span id="thSD">0.091</span></div>
+        <div><span>np</span><span id="thNP">15.0</span></div>
+        <div><span>n(1 − p)</span><span id="thNQ">15.0</span></div>
+      </div>
+      <div class="cond ok" id="condBox">✓ Large Counts condition met — the sampling distribution of p̂ should be approximately Normal.</div>
+
+      <div class="actions">
+        <button class="primary" id="btn1">Take 1 Sample</button>
+        <button id="btn10">+ 10 samples</button>
+        <button id="btn100">+ 100 samples</button>
+        <button id="btn1000">+ 1,000 samples</button>
+        <button class="reset" id="btnReset">Reset</button>
+      </div>
+
+      <div class="toggles">
+        <label><input type="checkbox" id="chkCurve" checked> Show Normal curve N(p, σ<sub>p̂</sub>)</label>
+        <label><input type="checkbox" id="chkMean" checked> Show mean of p̂ values</label>
+      </div>
+      <p style="font-size:12.5px;color:var(--muted);margin:10px 0 0">Changing p or n clears the histogram — a new sampling distribution needs new samples.</p>
+    </section>
+
+    <!-- Main -->
+    <div>
+      <div class="stats">
+        <div class="stat"><div class="k">Samples taken</div><div class="v" id="stCount">0</div><div class="s">replications</div></div>
+        <div class="stat highlight"><div class="k">Mean of p̂</div><div class="v" id="stMean">—</div><div class="s" id="stMeanSub">theory: 0.500</div></div>
+        <div class="stat highlight"><div class="k">SD of p̂</div><div class="v" id="stSD">—</div><div class="s" id="stSDSub">theory: 0.091</div></div>
+        <div class="stat"><div class="k">Last p̂</div><div class="v" id="stLast">—</div><div class="s" id="stLastSub">most recent sample</div></div>
+      </div>
+
+      <section class="card chart-card">
+        <div class="chart-head">
+          <h2 style="font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Histogram of sample proportions p̂</h2>
+          <div class="legend">
+            <span><span class="dot" style="background:var(--teal)"></span>p̂ values</span>
+            <span><span class="dot" style="background:var(--amber);border-radius:50%"></span>Normal curve</span>
+            <span><span class="dot" style="background:var(--red);border-radius:50%"></span>Mean of p̂</span>
+          </div>
+        </div>
+        <canvas id="chart" width="900" height="340"></canvas>
+        <div class="empty-note" id="emptyNote">No samples yet — press <b>Take 1 Sample</b> to draw your first sample of n = 30.</div>
+      </section>
+
+      <section class="card sample-viz" id="sampleCard" style="display:none">
+        <h2>Most recent sample</h2>
+        <div class="dots" id="dots"></div>
+        <p class="sample-meta" id="sampleMeta"></p>
+      </section>
+
+      <div class="takeaways">
+        <div class="take"><b>Center — unbiased</b><p>The mean of the p̂ values settles near p. On average, p̂ hits the true proportion — it doesn’t systematically over- or underestimate.</p></div>
+        <div class="take"><b>Spread — bigger n, tighter</b><p>Quadruple n and the SD is cut in half: <span class="eq">σ<sub>p̂</sub> = <math><msqrt><mfrac><mrow><mi>p</mi><mo>(</mo><mn>1</mn><mo>−</mo><mi>p</mi><mo>)</mo></mrow><mi>n</mi></mfrac></msqrt></math></span>. Try n = 25 vs. n = 100 with the same p and compare.</p></div>
+        <div class="take"><b>Shape — toward Normal</b><p>With small n or p near 0 / 1, the histogram is discrete and skewed. As np and n(1−p) grow past 10, it becomes smooth and bell-shaped (CLT).</p></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Each sample is drawn with replacement from a population with proportion p of “successes.” &nbsp;·&nbsp; Try this: set p = 0.10, n = 10 and take 1,000 samples — then raise n to 100 and watch the skew disappear.</footer>
+</div>
+
+<script>
+(function(){
+  var p = 0.50, n = 30;
+  var phats = [];
+  var lastSample = null; // {successes, draws:[]}
+
+  var $ = function(id){ return document.getElementById(id); };
+  var pRange=$('pRange'), nRange=$('nRange'), chart=$('chart'), ctx=chart.getContext('2d');
+
+  function theorySD(){ return Math.sqrt(p*(1-p)/n); }
+  function fmt(x,d){ return x.toFixed(d===undefined?3:d); }
+
+  function syncTheory(){
+    $('pVal').textContent = p.toFixed(2);
+    $('nVal').textContent = n;
+    $('thMean').textContent = fmt(p);
+    $('thSD').textContent = fmt(theorySD());
+    $('thNP').textContent = (n*p).toFixed(1);
+    $('thNQ').textContent = (n*(1-p)).toFixed(1);
+    $('stMeanSub').textContent = 'theory: ' + fmt(p);
+    $('stSDSub').textContent = 'theory: ' + fmt(theorySD());
+    var ok = n*p>=10 && n*(1-p)>=10;
+    var box=$('condBox');
+    box.className = 'cond ' + (ok?'ok':'warn');
+    box.textContent = ok
+      ? '✓ Large Counts condition met (np ≥ 10 and n(1−p) ≥ 10) — the sampling distribution of p̂ should be approximately Normal.'
+      : '⚠ Large Counts condition NOT met (np = '+(n*p).toFixed(1)+', n(1−p) = '+(n*(1-p)).toFixed(1)+'). Expect a skewed or chunky shape — the Normal curve is only a rough guide here.';
+    document.querySelectorAll('#nPresets button').forEach(function(b){
+      b.classList.toggle('active', parseInt(b.dataset.n,10)===n);
+    });
+    if(phats.length===0) $('emptyNote').innerHTML = 'No samples yet — press <b>Take 1 Sample</b> to draw your first sample of n = '+n+'.';
+  }
+
+  function drawSample(){
+    var s=0, draws=[];
+    for(var i=0;i<n;i++){ var hit = Math.random()<p ? 1:0; s+=hit; if(i<600) draws.push(hit); }
+    return {successes:s, draws:draws, phat:s/n};
+  }
+
+  function take(k){
+    for(var i=0;i<k;i++){
+      var smp = drawSample();
+      phats.push(smp.phat);
+      lastSample = smp;
+    }
+    update();
+  }
+
+  function update(){
+    var count = phats.length;
+    $('stCount').textContent = count.toLocaleString('en-US');
+    if(count>0){
+      var sum=0; for(var i=0;i<count;i++) sum+=phats[i];
+      var mean=sum/count;
+      var ss=0; for(var j=0;j<count;j++) ss+=(phats[j]-mean)*(phats[j]-mean);
+      var sd = count>1 ? Math.sqrt(ss/(count-1)) : 0;
+      $('stMean').textContent = fmt(mean);
+      $('stSD').textContent = fmt(sd);
+      $('stLast').textContent = fmt(phats[count-1]);
+      $('stLastSub').textContent = lastSample.successes + ' of ' + n + ' were successes';
+      $('emptyNote').style.display='none';
+      renderLastSample();
+    } else {
+      $('stMean').textContent='—'; $('stSD').textContent='—'; $('stLast').textContent='—'; $('stLastSub').textContent='most recent sample';
+      $('emptyNote').style.display='block';
+      $('sampleCard').style.display='none';
+    }
+    drawChart();
+  }
+
+  function renderLastSample(){
+    if(!lastSample) return;
+    $('sampleCard').style.display='block';
+    var html='';
+    var show = Math.min(lastSample.draws.length, 250);
+    for(var i=0;i<show;i++) html += '<span class="sdot '+(lastSample.draws[i]?'s':'f')+'"></span>';
+    if(n>show) html += '<span style="font-size:13px;color:var(--muted);align-self:center">… +'+(n-show)+' more</span>';
+    $('dots').innerHTML = html;
+    $('sampleMeta').innerHTML = 'Filled = success, outline = failure. &nbsp;Successes: <b>'+lastSample.successes+' / '+n+'</b> &nbsp;→&nbsp; <span class="eq"><i>p̂</i> = <span class="frac"><span class="frac-num">'+lastSample.successes+'</span><span class="frac-den">'+n+'</span></span> = <b>'+fmt(lastSample.phat)+'</b></span> &nbsp;(true p = '+p.toFixed(2)+')';
+  }
+
+  function drawChart(){
+    var dpr = window.devicePixelRatio||1;
+    var W = chart.clientWidth, H = chart.clientHeight;
+    if(chart.width!==W*dpr){ chart.width=W*dpr; chart.height=H*dpr; }
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,W,H);
+    var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var ink = dark?'#eceee9':'#1a1e1c', muted = dark?'#9aa39d':'#6b726e', line = dark?'#333835':'#ddd9cf';
+    var teal = dark?'#2dd4bf':'#0f766e';
+    var padL=44, padR=12, padT=14, padB=30;
+    var cw=W-padL-padR, ch=H-padT-padB;
+
+    // x-range: zoom around p
+    var se = theorySD();
+    var lo = Math.max(0, p - 4.2*se), hi = Math.min(1, p + 4.2*se);
+    if(phats.length){ for(var i=0;i<phats.length;i++){ if(phats[i]<lo) lo=phats[i]; if(phats[i]>hi) hi=phats[i]; } }
+    if(hi-lo<0.08){ var mid=(lo+hi)/2; lo=Math.max(0,mid-0.04); hi=Math.min(1,mid+0.04); }
+    var pad=(hi-lo)*0.04; lo=Math.max(0,lo-pad); hi=Math.min(1,hi+pad);
+    function X(v){ return padL + (v-lo)/(hi-lo)*cw; }
+
+    // bins
+    var bins=40, bw=(hi-lo)/bins, counts=new Array(bins).fill(0);
+    for(var k=0;k<phats.length;k++){ var idx=Math.floor((phats[k]-lo)/bw); if(idx<0)idx=0; if(idx>=bins)idx=bins-1; counts[idx]++; }
+    var maxC=Math.max.apply(null, counts.concat([1]));
+    // allow curve to set scale
+    function pdf(x){ var z=(x-p)/se; return Math.exp(-0.5*z*z)/(se*Math.sqrt(2*Math.PI)); }
+    if($('chkCurve').checked && phats.length>0){
+      var peak = phats.length*bw*pdf(p);
+      if(peak>maxC) maxC=peak;
+    }
+    maxC*=1.12;
+    function Y(c){ return padT + ch - (c/maxC)*ch; }
+
+    // gridlines + y labels
+    ctx.font='11px system-ui'; ctx.fillStyle=muted; ctx.strokeStyle=line; ctx.lineWidth=1;
+    var steps=4;
+    for(var g=0; g<=steps; g++){
+      var cval=maxC/1.12*g/steps, y=Y(cval);
+      ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
+      ctx.textAlign='right'; ctx.fillText(Math.round(cval).toString(), padL-7, y+4);
+    }
+    // bars
+    ctx.fillStyle=teal;
+    for(var b=0;b<bins;b++){
+      if(!counts[b]) continue;
+      var x0=X(lo+b*bw)+0.5, x1=X(lo+(b+1)*bw)-0.5;
+      ctx.fillRect(x0, Y(counts[b]), Math.max(1,x1-x0), padT+ch-Y(counts[b]));
+    }
+    // normal curve
+    if($('chkCurve').checked && phats.length>0){
+      ctx.beginPath(); ctx.strokeStyle= dark?'#fbbf24':'#d97706'; ctx.lineWidth=2.5;
+      for(var px=0; px<=cw; px+=2){
+        var xv=lo+(px/cw)*(hi-lo);
+        var yv=Y(phats.length*bw*pdf(xv));
+        if(px===0) ctx.moveTo(padL+px, yv); else ctx.lineTo(padL+px, yv);
+      }
+      ctx.stroke();
+    }
+    // mean line
+    if($('chkMean').checked && phats.length>0){
+      var sum=0; for(var m=0;m<phats.length;m++) sum+=phats[m];
+      var mean=sum/phats.length, mx=X(mean);
+      ctx.strokeStyle='#dc2626'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+      ctx.beginPath(); ctx.moveTo(mx,padT); ctx.lineTo(mx,padT+ch); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle='#dc2626'; ctx.textAlign = mean>(lo+hi)/2 ? 'right':'left';
+      ctx.font='bold 12px system-ui';
+      ctx.fillText('mean = '+fmt(mean), mx + (mean>(lo+hi)/2?-6:6), padT+12);
+    }
+    // true p line
+    ctx.strokeStyle=ink; ctx.lineWidth=1.5; ctx.setLineDash([2,3]);
+    ctx.beginPath(); ctx.moveTo(X(p),padT); ctx.lineTo(X(p),padT+ch); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle=ink; ctx.textAlign='center'; ctx.font='bold 11px system-ui';
+    ctx.fillText('p = '+p.toFixed(2), X(p), padT+ch+16);
+    // x ticks
+    ctx.fillStyle=muted; ctx.font='11px system-ui';
+    for(var t=0;t<=4;t++){ var tv=lo+(hi-lo)*t/4; ctx.textAlign='center'; ctx.fillText(tv.toFixed(2), X(tv), padT+ch+16===padT+ch+16 && t===2 && Math.abs(tv-p)<(hi-lo)/8 ? padT+ch+28 : padT+ch+16); }
+    // axis
+    ctx.strokeStyle=line; ctx.beginPath(); ctx.moveTo(padL,padT+ch); ctx.lineTo(W-padR,padT+ch); ctx.stroke();
+    ctx.fillStyle=muted; ctx.textAlign='left'; ctx.font='11px system-ui';
+    ctx.fillText('count', 4, padT+4);
+    ctx.textAlign='right'; ctx.fillText('p̂', W-padR, H-4);
+  }
+
+  // events
+  pRange.addEventListener('input', function(){ p=parseFloat(pRange.value); phats=[]; lastSample=null; syncTheory(); update(); });
+  nRange.addEventListener('input', function(){ n=parseInt(nRange.value,10); phats=[]; lastSample=null; syncTheory(); update(); });
+  document.querySelectorAll('#nPresets button').forEach(function(b){
+    b.addEventListener('click', function(){ n=parseInt(b.dataset.n,10); nRange.value=n; phats=[]; lastSample=null; syncTheory(); update(); });
+  });
+  $('btn1').addEventListener('click', function(){ take(1); });
+  $('btn10').addEventListener('click', function(){ take(10); });
+  $('btn100').addEventListener('click', function(){ take(100); });
+  $('btn1000').addEventListener('click', function(){ take(1000); });
+  $('btnReset').addEventListener('click', function(){ phats=[]; lastSample=null; update(); });
+  $('chkCurve').addEventListener('change', drawChart);
+  $('chkMean').addEventListener('change', drawChart);
+  window.addEventListener('resize', drawChart);
+  if(window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawChart);
+
+  syncTheory();
+  update();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MG Math Visual Lab · 数学可视化互动实验室</title>
+<meta name="description" content="MG 数学可视化互动实验室：整合几何交互演示与 AP Statistics 抽样分布模拟器。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%3E%3Crect%20width%3D%2240%22%20height%3D%2240%22%20rx%3D%2210%22%20fill%3D%22%23172A48%22%2F%3E%3Ctext%20x%3D%2220%22%20y%3D%2226%22%20text-anchor%3D%22middle%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2218%22%20font-weight%3D%22700%22%20fill%3D%22%23E8B04A%22%3EMG%3C%2Ftext%3E%3C%2Fsvg%3E">
+<link rel="preload" href="fonts/Montserrat-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="styles.css?v=1">
+</head>
+<body>
+<a class="skip" href="#main">跳转到内容</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="index.html">
+      <span class="mark" aria-hidden="true">M<em>G</em></span>
+      <span class="brand-text">
+        <strong>MATH VISUAL LAB</strong>
+        <small>MG 数学可视化互动实验室</small>
+      </span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="index.html" aria-current="page">互动目录</a>
+      <a href="https://mghalip.github.io/ap-statistics/" target="_blank" rel="noopener">AP 统计课堂 ↗</a>
+      <a href="https://mghalip.github.io/mg-test-prep-lab/" target="_blank" rel="noopener">MG Test Prep Lab ↗</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow"><span aria-hidden="true">✦</span> THE MG CLASSROOM · INTERACTIVE LAB</p>
+      <h1>数学可视化互动实验室</h1>
+      <p class="hero-sub">Interactive Math &amp; Statistics Visualizations — 拖动、调参、直观看懂几何与抽样分布</p>
+    </div>
+    <div class="hero-stat">
+      <strong id="total-count">5</strong>
+      <span>个互动可视化</span>
+    </div>
+  </section>
+
+  <section class="toolbar" aria-label="筛选与搜索互动模块">
+    <div class="toolbar-row">
+      <div class="filter-pills" role="group" aria-label="按学科分类筛选">
+        <button type="button" class="filter-pill" data-filter="all" aria-pressed="true">全部 <span class="pill-n" id="count-all">5</span></button>
+        <button type="button" class="filter-pill" data-filter="geometry" aria-pressed="false">几何 Geometry <span class="pill-n" id="count-geometry">1</span></button>
+        <button type="button" class="filter-pill" data-filter="sampling" aria-pressed="false">抽样分布 Sampling <span class="pill-n" id="count-sampling">4</span></button>
+      </div>
+      <div class="search-box">
+        <svg class="search-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="9" cy="9" r="6"/><path d="M13.5 13.5L17.5 17.5"/>
+        </svg>
+        <input type="search" id="filter-search" placeholder="搜索互动名称、符号或课程标签…" aria-label="搜索可视化互动">
+        <button type="button" class="search-clear" id="filter-clear" aria-label="清空搜索" hidden>×</button>
+      </div>
+    </div>
+    <div class="toolbar-meta">
+      <span id="filter-status" aria-live="polite">显示全部 5 个互动可视化</span>
+      <span>支持课堂投屏全屏演示，也可独立窗口打开</span>
+    </div>
+  </section>
+
+  <div id="catalog-root"></div>
+
+  <div class="empty-state" id="filter-empty" hidden>
+    <strong>没有找到匹配的互动可视化</strong>
+    <p>试试清空搜索关键词或切换回「全部」查看全部实验模块。</p>
+    <button type="button" class="empty-reset" id="filter-reset">显示全部模块</button>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-brand">
+    <strong>MG <span>MATH VISUAL LAB</span></strong>
+    <p>© 2026 MG · 教学可视化交互实验室。</p>
+  </div>
+  <a class="back-top" href="#main">返回顶部 ↑</a>
+</footer>
+
+<script src="tools.js?v=1"></script>
+<script>
+(() => {
+  const tools = window.MG_MATH_TOOLS || [];
+  const root = document.getElementById('catalog-root');
+  const pills = [...document.querySelectorAll('.filter-pill')];
+  const input = document.getElementById('filter-search');
+  const clearBtn = document.getElementById('filter-clear');
+  const statusEl = document.getElementById('filter-status');
+  const emptyEl = document.getElementById('filter-empty');
+  const resetBtn = document.getElementById('filter-reset');
+
+  const GROUPS = [
+    { key: 'geometry', title: '几何 · Geometry', sub: '直观几何推导与动态图形变换' },
+    { key: 'sampling', title: '统计 · 抽样分布模拟器', sub: '样本比例、样本均值与双样本差值抽样实验' }
+  ];
+
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+
+  document.getElementById('total-count').textContent = tools.length;
+  document.getElementById('count-all').textContent = tools.length;
+  document.getElementById('count-geometry').textContent = tools.filter(t => t.category === 'geometry').length;
+  document.getElementById('count-sampling').textContent = tools.filter(t => t.category === 'sampling').length;
+
+  root.innerHTML = GROUPS.map(group => {
+    const items = tools.filter(t => t.category === group.key);
+    if (!items.length) return '';
+    return `
+      <section class="cat-section" data-group="${group.key}" aria-labelledby="sec-${group.key}">
+        <div class="cat-head">
+          <div class="cat-title">
+            <h2 id="sec-${group.key}">${esc(group.title)}</h2>
+            <span class="cat-sub">${esc(group.sub)}</span>
+          </div>
+          <span class="cat-count">${items.length} 个</span>
+        </div>
+        <div class="tools-grid">
+          ${items.map(item => `
+            <article class="tool-card cat-${esc(item.category)}" data-cat="${esc(item.category)}" data-search="${esc((item.titleZh + ' ' + item.titleEn + ' ' + item.desc + ' ' + item.symbol + ' ' + item.tags.join(' ')).toLowerCase())}">
+              <div class="tool-thumb">
+                <span class="thumb-badge">${esc(item.categoryLabel)}</span>
+                <span class="thumb-symbol">${esc(item.symbol)}</span>
+                ${item.svg}
+              </div>
+              <div class="tool-body">
+                <h3 class="tool-title-zh">${esc(item.titleZh)}</h3>
+                <p class="tool-title-en" lang="en">${esc(item.titleEn)}</p>
+                <p class="tool-desc">${esc(item.desc)}</p>
+                <div class="tool-tags">
+                  ${item.tags.map(tag => `<span class="tool-tag">${esc(tag)}</span>`).join('')}
+                </div>
+              </div>
+              <div class="tool-foot">
+                <a class="btn-primary" href="viewer.html?tool=${encodeURIComponent(item.id)}">进入互动 →</a>
+                <a class="btn-secondary" href="${esc(item.path)}" target="_blank" rel="noopener" aria-label="在新窗口独立打开 ${esc(item.titleZh)}">独立窗口 ↗</a>
+              </div>
+            </article>
+          `).join('')}
+        </div>
+      </section>
+    `;
+  }).join('');
+
+  const sections = [...root.querySelectorAll('.cat-section')];
+  const cards = [...root.querySelectorAll('.tool-card')];
+  let activeFilter = 'all';
+
+  function apply() {
+    const q = (input.value || '').trim().toLowerCase();
+    clearBtn.hidden = q.length === 0;
+    let visible = 0;
+
+    for (const card of cards) {
+      const catOk = activeFilter === 'all' || card.dataset.cat === activeFilter;
+      const textOk = !q || (card.dataset.search || '').includes(q);
+      const show = catOk && textOk;
+      card.hidden = !show;
+      if (show) visible += 1;
+    }
+
+    for (const sec of sections) {
+      const secCards = [...sec.querySelectorAll('.tool-card')];
+      const shown = secCards.filter(c => !c.hidden).length;
+      sec.hidden = shown === 0;
+      const countEl = sec.querySelector('.cat-count');
+      if (countEl) countEl.textContent = `${shown} 个`;
+    }
+
+    emptyEl.hidden = visible > 0;
+    statusEl.textContent = (visible === tools.length && activeFilter === 'all' && !q)
+      ? `显示全部 ${tools.length} 个互动可视化`
+      : `已筛选显示 ${visible} / ${tools.length} 个互动可视化`;
+  }
+
+  for (const pill of pills) {
+    pill.addEventListener('click', () => {
+      activeFilter = pill.dataset.filter;
+      for (const p of pills) p.setAttribute('aria-pressed', String(p === pill));
+      apply();
+    });
+  }
+
+  input.addEventListener('input', apply);
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
+    input.focus();
+    apply();
+  });
+  resetBtn.addEventListener('click', () => {
+    activeFilter = 'all';
+    input.value = '';
+    for (const p of pills) p.setAttribute('aria-pressed', String(p.dataset.filter === 'all'));
+    apply();
+  });
+})();
+</script>
+</body>
+</html>

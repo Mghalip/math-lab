@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Exterior Angles of Polygons</title>
+<style>
+:root{--ink:#1d2433;--muted:#5b6475;--teal:#2a8c82;--navy:#152b5c;--bg:#f4f6f9;--card:#fff;--line:#d9dee7}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink)}
+.wrap{max-width:1200px;margin:0 auto;padding:18px 22px}
+h1{font-size:26px;margin:0 0 2px}
+.sub{color:var(--muted);margin:0 0 14px;font-size:15px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 20px}
+.controls{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end}
+.lab{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.stepper{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;height:56px}
+.stepper button{width:50px;font-size:26px;border:0;background:#f7f8fb;cursor:pointer;color:var(--ink)}
+.stepper button:hover{background:#eceff5}
+.stepper .val{width:124px;text-align:center;padding-top:5px;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+.val b{font-size:24px;display:block;line-height:1.1}
+.val small{color:var(--muted);font-size:12px}
+.zoom{flex:1;min-width:340px}
+.zrow{display:flex;gap:12px;align-items:center;height:56px}
+.btn{border:1px solid var(--line);background:#f7f8fb;border-radius:10px;padding:10px 16px;font-weight:600;font-size:15px;cursor:pointer;color:var(--ink);white-space:nowrap}
+.btn:hover{background:#eceff5}
+.btn.primary{background:var(--teal);color:#fff;border-color:var(--teal)}
+.btn.primary:hover{filter:brightness(1.06)}
+input[type=range]{flex:1;accent-color:var(--teal);cursor:pointer}
+.pct{width:58px;text-align:right;font-weight:700;font-size:16px}
+.sum{background:var(--navy);color:#fff;border-radius:12px;padding:8px 18px;text-align:right;min-width:200px}
+.sum .lab{color:#b9c6e6;margin:0;font-size:11px}
+.sum b{font-size:32px;font-family:Georgia,"Times New Roman",serif;line-height:1.1}
+.eq{margin-top:14px;font-size:17px;min-height:26px;line-height:1.6}
+.eq .t{font-weight:700}
+.opts{display:flex;gap:20px;flex-wrap:wrap;margin-top:8px;color:var(--muted);font-size:14px;align-items:center}
+.opts label{cursor:pointer;user-select:none}
+svg{width:100%;height:auto;display:block;background:#fff;border:1px solid var(--line);border-radius:14px;margin-top:14px;touch-action:none;user-select:none}
+.hint{color:var(--muted);font-size:13px;margin-top:8px}
+.warn{color:#c0392b;font-weight:600}
+[data-drag]{cursor:grab}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Exterior Angles of Polygons</h1>
+  <p class="sub">Change the number of sides, drag the vertices, then shrink the polygon toward the marked point. What happens to the exterior angles?</p>
+
+  <div class="panel">
+    <div class="controls">
+      <div>
+        <div class="lab">Number of sides</div>
+        <div class="stepper">
+          <button id="minus" aria-label="fewer sides">−</button>
+          <div class="val"><b id="nVal">5</b><small id="nName">Pentagon</small></div>
+          <button id="plus" aria-label="more sides">+</button>
+        </div>
+      </div>
+      <div class="zoom">
+        <div class="lab">Shrink / enlarge polygon towards the marked point</div>
+        <div class="zrow">
+          <button class="btn primary" id="shrink">Shrink</button>
+          <input type="range" id="scale" min="2" max="200" value="100" step="1">
+          <span class="pct" id="pct">100%</span>
+        </div>
+      </div>
+      <div class="sum">
+        <div class="lab">Exterior angle sum</div>
+        <b id="sumVal">360°</b>
+      </div>
+    </div>
+    <div class="eq" id="eq"></div>
+    <div class="opts">
+      <button class="btn" id="newShape">New random shape</button>
+      <label><input type="checkbox" id="regular"> Regular polygon</label>
+      <label><input type="checkbox" id="interior"> Show interior angles</label>
+      <label><input type="checkbox" id="pieAlways"> Always show angles gathered at marked point</label>
+    </div>
+  </div>
+
+  <svg id="svg" viewBox="0 0 1000 620" aria-label="polygon diagram"></svg>
+  <div class="hint">Tip: drag any vertex to reshape the polygon; drag the red marked point to choose where it shrinks to. As the polygon shrinks, the exterior angles fit together around the point to make one full turn.</div>
+</div>
+
+<script>
+const NAMES={3:'Triangle',4:'Quadrilateral',5:'Pentagon',6:'Hexagon',7:'Heptagon',8:'Octagon',9:'Nonagon',10:'Decagon',11:'Hendecagon',12:'Dodecagon'};
+const COLORS=['#e0662f','#2a8c82','#3b6fd8','#c2417e','#d4a017','#7a52c7','#2f9e4f','#d1495b','#1f8fb3','#8c6d31','#5d6d7e','#e07a5f'];
+const W=1000,H=620,MIN_N=3,MAX_N=12;
+let n=5,base=[],M={x:500,y:315},s=1,anim=null,drag=null;
+const $=id=>document.getElementById(id);
+const svg=$('svg');
+
+const rand=(a,b)=>a+Math.random()*(b-a);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const norm=v=>{const l=Math.hypot(v.x,v.y)||1;return{x:v.x/l,y:v.y/l}};
+const f=x=>x.toFixed(2);
+
+function cross(P){const N=P.length,c=[];for(let i=0;i<N;i++){const A=P[(i-1+N)%N],B=P[i],C=P[(i+1)%N];c.push((B.x-A.x)*(C.y-B.y)-(B.y-A.y)*(C.x-B.x))}return c}
+function isConvex(P){const c=cross(P);return c.every(v=>v>0)||c.every(v=>v<0)}
+
+function gen(){
+  M={x:500,y:315};
+  const R=235,reg=$('regular').checked;
+  for(let t=0;t<300;t++){
+    const angs=[];
+    if(reg){for(let i=0;i<n;i++)angs.push(-Math.PI/2+2*Math.PI*i/n)}
+    else{const g=[];for(let i=0;i<n;i++)g.push(rand(0.55,1.45));const tot=g.reduce((a,b)=>a+b);let a=rand(0,2*Math.PI);for(let i=0;i<n;i++){angs.push(a);a+=g[i]/tot*2*Math.PI}}
+    const pts=angs.map(a=>{const r=reg?R:R*rand(0.8,1);return{x:M.x+r*Math.cos(a),y:M.y+r*Math.sin(a)}});
+    if(reg||isConvex(pts)){base=pts;return}
+  }
+}
+
+// round each value to 0.1 so the shown terms add up exactly to the shown total
+function roundTo(vals){
+  const t=Math.round(vals.reduce((a,b)=>a+b,0)*10);
+  const fl=vals.map(v=>Math.floor(v*10+1e-9));
+  let rem=t-fl.reduce((a,b)=>a+b,0);
+  const order=vals.map((v,i)=>[v*10-fl[i],i]).sort((a,b)=>b[0]-a[0]);
+  for(let k=0;k<order.length&&rem>0;k++,rem--)fl[order[k][1]]++;
+  return fl.map(v=>v/10);
+}
+const fmt=v=>(Math.abs(v)<0.05?'0.0':v.toFixed(1)).replace('-','−');
+
+function wedgePath(c,uh,vh,r,a){
+  return `M${f(c.x)},${f(c.y)} L${f(c.x+r*uh.x)},${f(c.y+r*uh.y)} A${f(r)},${f(r)} 0 0 ${a>0?1:0} ${f(c.x+r*vh.x)},${f(c.y+r*vh.y)} Z`;
+}
+function arcPath(c,uh,vh,r,a){
+  return `M${f(c.x+r*uh.x)},${f(c.y+r*uh.y)} A${f(r)},${f(r)} 0 0 ${a>0?1:0} ${f(c.x+r*vh.x)},${f(c.y+r*vh.y)}`;
+}
+
+function render(){
+  const N=base.length;
+  const P=base.map(v=>({x:M.x+s*(v.x-M.x),y:M.y+s*(v.y-M.y)}));
+  // angles from the unscaled shape (scale does not change angles)
+  const info=[];let sumRad=0;
+  for(let i=0;i<N;i++){
+    const A=base[(i-1+N)%N],B=base[i],C=base[(i+1)%N];
+    const u={x:B.x-A.x,y:B.y-A.y},v={x:C.x-B.x,y:C.y-B.y};
+    const a=Math.atan2(u.x*v.y-u.y*v.x,u.x*v.x+u.y*v.y);
+    sumRad+=a;
+    info.push({a,uh:norm(u),vh:norm(v),lu:Math.hypot(u.x,u.y)*s,lv:Math.hypot(v.x,v.y)*s});
+  }
+  const o=sumRad>=0?1:-1;
+  const deg=info.map(r=>r.a*o*180/Math.PI);
+  const shown=deg.map(d=>Math.round(d*10)/10);
+  const total=deg.reduce((a,b)=>a+b,0);
+  const convex=deg.every(d=>d>0);
+  const showInt=$('interior').checked;
+
+  let g='';
+  // grid dots
+  g+=`<defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#e3e7ee"/></pattern></defs><rect width="${W}" height="${H}" fill="url(#grid)"/>`;
+  // gathered angles at the marked point
+  const pieOp=$('pieAlways').checked?1:clamp((0.4-s)/0.25,0,1);
+  if(pieOp>0){
+    const R=95;
+    g+=`<g opacity="${pieOp.toFixed(2)}">`;
+    info.forEach((r,i)=>{
+      g+=`<path d="${wedgePath(M,r.uh,r.vh,R,r.a)}" fill="${COLORS[i%12]}" fill-opacity=".55" stroke="#fff" stroke-width="2"/>`;
+    });
+    info.forEach((r,i)=>{
+      let bis={x:r.uh.x+r.vh.x,y:r.uh.y+r.vh.y};
+      if(Math.hypot(bis.x,bis.y)<0.05)bis={x:-r.uh.y,y:r.uh.x};
+      bis=norm(bis);
+      g+=`<text x="${f(M.x+(R+26)*bis.x)}" y="${f(M.y+(R+26)*bis.y+6)}" text-anchor="middle" font-size="16" font-weight="700" fill="${COLORS[i%12]}" stroke="#fff" stroke-width="4" paint-order="stroke">${fmt(shown[i])}°</text>`;
+    });
+    g+=`<text x="${f(M.x)}" y="${f(M.y-R-52)}" text-anchor="middle" font-size="18" font-weight="700" fill="#152b5c" stroke="#fff" stroke-width="5" paint-order="stroke">One full turn = 360°</text>`;
+    g+=`</g>`;
+  }
+
+  // polygon
+  g+=`<polygon points="${P.map(p=>f(p.x)+','+f(p.y)).join(' ')}" fill="#e8efe9" stroke="#2c3442" stroke-width="2.5" stroke-linejoin="round"/>`;
+
+  // extension lines + arcs at vertices
+  info.forEach((r,i)=>{
+    const B=P[i],ext=Math.max(70,Math.min(110,r.lu*0.5));
+    g+=`<line x1="${f(B.x)}" y1="${f(B.y)}" x2="${f(B.x+ext*r.uh.x)}" y2="${f(B.y+ext*r.uh.y)}" stroke="#6b7385" stroke-width="1.6" stroke-dasharray="6 5"/>`;
+    const rad=Math.min(34,0.38*Math.min(r.lu,r.lv));
+    if(rad>3){
+      g+=`<path d="${wedgePath(B,r.uh,r.vh,rad,r.a)}" fill="${COLORS[i%12]}" fill-opacity=".18"/>`;
+      g+=`<path d="${arcPath(B,r.uh,r.vh,rad,r.a)}" fill="none" stroke="${COLORS[i%12]}" stroke-width="3.5"/>`;
+    }
+    if(rad>12&&pieOp<0.95){
+      let bis={x:r.uh.x+r.vh.x,y:r.uh.y+r.vh.y};
+      if(Math.hypot(bis.x,bis.y)<0.05)bis={x:-r.uh.y,y:r.uh.x};
+      bis=norm(bis);
+      const L=rad+26;
+      g+=`<text x="${f(B.x+L*bis.x)}" y="${f(B.y+L*bis.y+6)}" opacity="${(1-pieOp).toFixed(2)}" text-anchor="middle" font-size="17" font-weight="700" fill="${COLORS[i%12]}" stroke="#fff" stroke-width="4" paint-order="stroke">${fmt(shown[i])}°</text>`;
+      if(showInt){
+        let ib=norm({x:r.vh.x-r.uh.x,y:r.vh.y-r.uh.y});
+        g+=`<text opacity="${(1-pieOp).toFixed(2)}" x="${f(B.x+34*ib.x)}" y="${f(B.y+34*ib.y+5)}" text-anchor="middle" font-size="14" fill="#5b6475" font-style="italic">${fmt(180-shown[i])}°</text>`;
+      }
+    }
+  });
+
+  // vertices (draggable)
+  P.forEach((p,i)=>{
+    g+=`<circle cx="${f(p.x)}" cy="${f(p.y)}" r="6" fill="#fff" stroke="#2c3442" stroke-width="2.5" pointer-events="none"/>`;
+    if(s>=0.08)g+=`<circle data-drag="${i}" cx="${f(p.x)}" cy="${f(p.y)}" r="17" fill="transparent"/>`;
+  });
+  // marked point
+  g+=`<circle cx="${f(M.x)}" cy="${f(M.y)}" r="5" fill="#d63031"/>`;
+  g+=`<circle data-drag="M" cx="${f(M.x)}" cy="${f(M.y)}" r="15" fill="transparent"/>`;
+  svg.innerHTML=g;
+
+  // panel
+  $('nVal').textContent=N;$('nName').textContent=NAMES[N];
+  $('sumVal').textContent=(Math.abs(total-Math.round(total))<0.05?Math.round(total):total.toFixed(1))+'°';
+  const terms=shown.map((v,i)=>`<span class="t" style="color:${COLORS[i%12]}">${v<0?'('+fmt(v)+'°)':fmt(v)+'°'}</span>`).join(' + ');
+  let txt=`Exterior-angle sum: ${terms} = <b>${Math.round(total)}°</b> <span style="color:#8a92a3;font-size:13px">(each angle rounded to 0.1°)</span>`;
+  if($('regular').checked&&convex&&isRegularNow())txt+=`<br>Regular ${NAMES[N].toLowerCase()}: each exterior angle = 360° ÷ ${N} = <b>${(360/N).toFixed(1).replace(/\.0$/,'')}°</b>`;
+  if(!convex)txt+=`<br><span class="warn">This polygon is not convex: an exterior angle that turns the other way counts as negative, so the sum is still 360°.</span>`;
+  $('eq').innerHTML=txt;
+  $('minus').disabled=N<=MIN_N;$('plus').disabled=N>=MAX_N;
+  $('scale').value=Math.round(s*100);$('pct').textContent=Math.round(s*100)+'%';
+  $('shrink').textContent=s<0.15?'Restore':'Shrink';
+}
+let regularIntact=true;
+function isRegularNow(){return regularIntact}
+
+function toSvg(e){const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const q=pt.matrixTransform(svg.getScreenCTM().inverse());return{x:clamp(q.x,8,W-8),y:clamp(q.y,8,H-8)}}
+svg.addEventListener('pointerdown',e=>{const t=e.target.closest('[data-drag]');if(!t)return;drag=t.dataset.drag;cancelAnimationFrame(anim);e.preventDefault()});
+window.addEventListener('pointermove',e=>{
+  if(drag===null)return;
+  const p=toSvg(e);
+  if(drag==='M'){
+    // keep the polygon where it is on screen; only move the centre of shrinking
+    const P=base.map(v=>({x:M.x+s*(v.x-M.x),y:M.y+s*(v.y-M.y)}));
+    M=p;
+    if(s>0.05)base=P.map(q=>({x:M.x+(q.x-M.x)/s,y:M.y+(q.y-M.y)/s}));
+  }else{
+    const i=+drag;base[i]={x:M.x+(p.x-M.x)/s,y:M.y+(p.y-M.y)/s};regularIntact=false;
+  }
+  render();
+});
+window.addEventListener('pointerup',()=>drag=null);
+
+function animateTo(target){
+  cancelAnimationFrame(anim);
+  const s0=s,t0=performance.now(),D=2200;
+  const step=t=>{const k=Math.min(1,(t-t0)/D),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;s=s0+(target-s0)*e;render();if(k<1)anim=requestAnimationFrame(step)};
+  anim=requestAnimationFrame(step);
+}
+$('shrink').onclick=()=>animateTo(s<0.15?1:0.02);
+$('scale').oninput=e=>{cancelAnimationFrame(anim);s=e.target.value/100;render()};
+$('minus').onclick=()=>{if(n>MIN_N){n--;regularIntact=true;gen();render()}};
+$('plus').onclick=()=>{if(n<MAX_N){n++;regularIntact=true;gen();render()}};
+$('newShape').onclick=()=>{regularIntact=true;gen();render()};
+$('regular').onchange=()=>{regularIntact=true;gen();render()};
+$('interior').onchange=render;
+$('pieAlways').onchange=render;
+
+gen();render();
+</script>
+</body>
+</html>

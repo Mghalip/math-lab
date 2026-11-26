@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>互动实验 · MG Math Visual Lab</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%3E%3Crect%20width%3D%2240%22%20height%3D%2240%22%20rx%3D%2210%22%20fill%3D%22%23172A48%22%2F%3E%3Ctext%20x%3D%2220%22%20y%3D%2226%22%20text-anchor%3D%22middle%22%20font-family%3D%22Georgia%2Cserif%22%20font-size%3D%2218%22%20font-weight%3D%22700%22%20fill%3D%22%23E8B04A%22%3EMG%3C%2Ftext%3E%3C%2Fsvg%3E">
+<link rel="preload" href="fonts/Montserrat-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="styles.css?v=1">
+</head>
+<body class="viewer-page">
+  <header class="viewer-bar">
+    <div class="viewer-left">
+      <a class="viewer-back" href="index.html">← 返回目录</a>
+      <span class="viewer-cat" id="viewer-cat">互动实验</span>
+      <h1 class="viewer-title" id="viewer-title">加载中…</h1>
+    </div>
+    <div class="viewer-right">
+      <select class="viewer-select" id="tool-select" aria-label="切换可视化互动"></select>
+      <button type="button" class="viewer-btn is-gold" id="fs-btn">全屏演示</button>
+      <a class="viewer-btn" id="open-raw" href="index.html" target="_blank" rel="noopener">独立打开 ↗</a>
+    </div>
+  </header>
+
+  <iframe class="viewer-frame" id="tool-frame" title="数学可视化互动视图" allowfullscreen></iframe>
+
+<script src="tools.js?v=1"></script>
+<script>
+(() => {
+  const tools = window.MG_MATH_TOOLS || [];
+  if (!tools.length) return;
+
+  const select = document.getElementById('tool-select');
+  const frame = document.getElementById('tool-frame');
+  const catEl = document.getElementById('viewer-cat');
+  const titleEl = document.getElementById('viewer-title');
+  const openRaw = document.getElementById('open-raw');
+  const fsBtn = document.getElementById('fs-btn');
+
+  const GROUPS = [
+    { key: 'geometry', label: '几何 · Geometry' },
+    { key: 'sampling', label: '统计 · 抽样分布' }
+  ];
+
+  for (const g of GROUPS) {
+    const items = tools.filter(t => t.category === g.key);
+    if (!items.length) continue;
+    const og = document.createElement('optgroup');
+    og.label = g.label;
+    for (const item of items) {
+      const opt = document.createElement('option');
+      opt.value = item.id;
+      opt.textContent = `${item.titleZh} (${item.symbol})`;
+      og.appendChild(opt);
+    }
+    select.appendChild(og);
+  }
+
+  function findById(id) {
+    return tools.find(t => t.id === id) || tools[0];
+  }
+
+  function updateChrome(tool) {
+    catEl.textContent = tool.categoryLabel;
+    titleEl.innerHTML = '';
+    titleEl.appendChild(document.createTextNode(tool.titleZh));
+    const sm = document.createElement('small');
+    sm.textContent = tool.titleEn;
+    titleEl.appendChild(sm);
+    select.value = tool.id;
+    openRaw.href = tool.path;
+    document.title = `${tool.titleZh} · MG Math Visual Lab`;
+    frame.title = `${tool.titleZh} — ${tool.titleEn}`;
+
+    const url = new URL(location.href);
+    if (url.searchParams.get('tool') !== tool.id) {
+      url.searchParams.set('tool', tool.id);
+      history.replaceState(null, '', url);
+    }
+  }
+
+  function loadTool(id) {
+    const tool = findById(id);
+    updateChrome(tool);
+    frame.src = tool.path;
+  }
+
+  // Sync top bar if user switches between sampling simulators via internal links inside iframe
+  frame.addEventListener('load', () => {
+    try {
+      const path = frame.contentWindow.location.pathname;
+      const matched = tools.find(t => path.endsWith('/' + t.path) || path.endsWith(t.path));
+      if (matched) updateChrome(matched);
+    } catch {
+      // Ignore if sandbox/cross-origin prevents reading location
+    }
+  });
+
+  select.addEventListener('change', () => loadTool(select.value));
+
+  fsBtn.addEventListener('click', async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch {
+      window.open(openRaw.href, '_blank', 'noopener');
+    }
+  });
+
+  document.addEventListener('fullscreenchange', () => {
+    fsBtn.textContent = document.fullscreenElement ? '退出全屏' : '全屏演示';
+  });
+
+  const initialId = new URLSearchParams(location.search).get('tool');
+  loadTool(initialId);
+})();
+</script>
+</body>
+</html>
