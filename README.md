@@ -13,7 +13,8 @@ math-lab/
 ├── fonts/              # 自托管 Montserrat 字体
 └── tools/
     ├── geometry/       # 几何互动模块（多边形外角和等）
-    └── sampling/       # 抽样分布模拟器（p̂、p̂₁−p̂₂、x̄、x̄₁−x̄₂）
+    ├── sampling/       # 抽样分布模拟器（p̂、p̂₁−p̂₂、x̄、x̄₁−x̄₂）
+    └── inference/      # 统计推断实验室（置信区间、两类错误与功效、t vs z、卡方检验）
 ```
 
 ## 如何新增互动可视化

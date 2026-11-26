@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:,">
+<title>卡方独立性/同质性模拟器 · Chi-Square Two-Way Table</title>
+<script>
+try { if (window.self !== window.top) document.documentElement.classList.add('in-embed'); }
+catch (e) { document.documentElement.classList.add('in-embed'); }
+</script>
+<style>
+:root{
+  --ground:#F5F2EA; --surface:#FFFDF8; --surface-2:#FAF7F0; --line:#E6E0D3; --line-soft:#EFEADF;
+  --navy:#172A48; --navy-2:#223B63; --navy-soft:#E9EEF5;
+  --ink:#16203A; --ink-2:#4B556B; --ink-3:#737B8E;
+  --sage:#1D6B53; --sage-soft:#E4F3EC;
+  --accent:#C86D44; --accent-soft:#FBECE4;
+  --gold:#B8862D; --gold-soft:#FBF1DB; --gold-bright:#E8B04A;
+  --danger:#B4342F; --danger-soft:#FDECEB;
+  --serif:"Iowan Old Style","Palatino Linotype","Charter",Georgia,"Songti SC","STSong",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  --shadow-sm:0 1px 2px rgba(23,42,72,.04),0 4px 12px -6px rgba(23,42,72,.08);
+  --r-md:14px; --r-sm:9px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --ground:#11161F; --surface:#19202C; --surface-2:#222B3A; --line:#303B4F; --line-soft:#263042;
+    --navy:#8FB0E0; --navy-2:#A6C2EB; --navy-soft:#1F2D44;
+    --ink:#EDF1F7; --ink-2:#B4BECE; --ink-3:#8692A6;
+    --sage:#38C6A8; --sage-soft:#14332C;
+    --accent:#EA8E63; --accent-soft:#3B241A;
+    --gold:#E8B04A; --gold-soft:#382C13; --gold-bright:#F2C46D;
+    --danger:#F87171; --danger-soft:#3B1C1E;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.35),0 6px 16px -6px rgba(0,0,0,.45);
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ground);color:var(--ink);font:400 15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button,input[type=number],select{min-height:38px}
+:focus-visible{outline:2.5px solid var(--gold);outline-offset:2px;border-radius:var(--r-sm)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+.sim-nav{background:var(--surface);border-bottom:1px solid var(--line);padding:8px 18px}
+.sim-nav-inner{max-width:1160px;margin:0 auto;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sim-nav a,.sim-nav strong{padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap}
+.sim-nav a{color:var(--ink-2);border:1px solid transparent}
+.sim-nav a:hover{background:var(--surface-2);border-color:var(--line);color:var(--ink)}
+.sim-nav strong{background:#172A48;color:#fff;border:1px solid #172A48}
+@media(prefers-color-scheme:dark){.sim-nav strong{background:var(--sage);color:#0E161B;border-color:var(--sage)}}
+.in-embed .sim-nav{display:none}
+
+.wrap{max-width:1160px;margin:0 auto;padding:18px 18px 40px}
+header.top{padding-bottom:16px;border-bottom:2px solid var(--line);margin-bottom:18px}
+.head-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.kicker{font:700 11.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin:0 0 6px}
+h1{font:700 clamp(24px,4vw,36px)/1.12 var(--serif);margin:0;letter-spacing:-.02em}
+h1 em{font-style:italic;color:var(--sage)}
+.sub{margin:8px 0 0;color:var(--ink-2);font-size:15px;max-width:740px}
+
+.lang-switch{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px;box-shadow:var(--shadow-sm);flex:none}
+.lang-switch button{min-height:30px;padding:0 12px;border:0;border-radius:999px;background:transparent;color:var(--ink-2);font-size:12.5px;font-weight:700;cursor:pointer}
+.lang-switch button[aria-pressed="true"]{background:#172A48;color:#fff}
+@media(prefers-color-scheme:dark){.lang-switch button[aria-pressed="true"]{background:var(--sage);color:#0E161B}}
+
+.formula{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:stretch}
+.chip{background:var(--surface);border:1px solid var(--line);padding:7px 13px;border-radius:11px;font-family:var(--serif);font-size:14px;display:inline-flex;align-items:center;gap:7px;line-height:1.25;box-shadow:var(--shadow-sm)}
+.chip b{color:var(--sage);font-weight:700}
+.chip .chip-label{font-family:var(--sans);font-size:12px;font-weight:700;color:var(--ink-3)}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.12;margin:0 2px;font-size:.92em}
+.frac-num{display:block;padding:0 5px 2px;border-bottom:1.5px solid currentColor;white-space:nowrap}
+.frac-den{display:block;padding:2px 5px 0;white-space:nowrap}
+
+.layout{display:grid;grid-template-columns:430px 1fr;gap:18px;align-items:start}
+@media(max-width:960px){.layout{grid-template-columns:1fr}}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:16px 18px;box-shadow:var(--shadow-sm)}
+.card h2{font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;margin:0 0 10px;color:var(--ink-3);font-weight:700}
+
+.presets{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+.presets button{min-height:32px;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);cursor:pointer;font-weight:700;font-size:12px;color:var(--ink-2)}
+.presets button:hover{border-color:var(--sage);color:var(--ink)}
+.presets button.active{background:#172A48;color:#fff;border-color:#172A48}
+@media(prefers-color-scheme:dark){.presets button.active{background:var(--sage);color:#0E161B;border-color:var(--sage)}}
+
+table.ctbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+table.ctbl th,table.ctbl td{border:1px solid var(--line);padding:6px;text-align:center;vertical-align:middle}
+table.ctbl th{background:var(--surface-2);font-size:12px;color:var(--ink-2)}
+table.ctbl td.tot{background:var(--surface-2);font-family:var(--mono);font-weight:700}
+.cell-in{width:64px;padding:3px 6px;text-align:center;font:700 15px/1.2 var(--mono);border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink);min-height:32px}
+.cell-meta{font:11px/1.35 var(--mono);color:var(--ink-2);margin-top:4px}
+.cell-meta span{display:block}
+.cell-meta .c-hi{color:var(--accent);font-weight:700}
+
+.cond{margin-top:12px;padding:9px 12px;border-radius:10px;font-size:13px;line-height:1.45}
+.cond.ok{background:var(--sage-soft);color:var(--sage)}
+.cond.warn{background:var(--gold-soft);color:#784E12}
+@media(prefers-color-scheme:dark){.cond.warn{color:var(--gold-bright)}}
+
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 13px;border-radius:10px;cursor:pointer;font-weight:700;font-size:13.5px;box-shadow:var(--shadow-sm)}
+.btn:hover{border-color:var(--navy)}
+.btn.primary{background:var(--sage);color:#fff;border-color:var(--sage);flex:1}
+@media(prefers-color-scheme:dark){.btn.primary{color:#0E161B}}
+.btn.reset{color:var(--danger)}
+.btn:disabled{opacity:.45;cursor:default}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:680px){.stats{grid-template-columns:1fr 1fr}}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow-sm)}
+.stat .k{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+.stat .v{font-family:var(--mono);font-size:22px;font-weight:800;line-height:1.2;margin-top:3px}
+.stat .s{font-size:12px;color:var(--ink-2);margin-top:2px}
+.stat.highlight{border-color:var(--sage);background:var(--sage-soft)}
+.stat.highlight .v{color:var(--sage)}
+
+.chart-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.chart-head h2{margin:0}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--ink-2);flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.swatch{display:inline-block;width:12px;height:12px;border-radius:3px}
+.swatch-line{display:inline-block;width:14px;height:0;border-top:2.5px solid var(--navy)}
+canvas{width:100%;height:310px;display:block}
+@media(max-width:640px){canvas{height:260px}}
+.empty-note{text-align:center;color:var(--ink-2);font-size:13px;padding:8px 10px;background:var(--surface-2);border:1px dashed var(--line);border-radius:10px;margin-top:8px}
+
+.perm-card{margin-top:14px}
+.verdict{margin-top:10px;padding:10px 13px;border-radius:10px;font-size:13.5px;background:var(--surface-2);border-left:3.5px solid var(--navy);color:var(--ink-2)}
+footer{margin-top:18px;font-size:12.5px;color:var(--ink-3);text-align:center}
+.kbd{font-family:var(--mono);font-size:11.5px;background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+</style>
+</head>
+<body>
+<nav class="sim-nav" aria-label="统计推断模拟器">
+  <div class="sim-nav-inner">
+    <a href="confidence-interval.html" data-i18n="nav_ci">置信区间捕获率</a>
+    <a href="errors-power.html" data-i18n="nav_ep">两类错误与功效</a>
+    <a href="t-vs-z.html" data-i18n="nav_tz">t 分布 vs 正态 z</a>
+    <strong aria-current="page" data-i18n="nav_chi">卡方列联表检验</strong>
+  </div>
+</nav>
+
+<div class="wrap">
+  <header class="top">
+    <div class="head-row">
+      <div>
+        <p class="kicker">AP Statistics · Unit 3.14–3.15 · Chi-Square Two-Way Tables</p>
+        <h1 data-i18n-html="h1">卡方列联表检验模拟器 <em>χ² Permutation &amp; Curve</em></h1>
+        <p class="sub" data-i18n-html="sub">自由编辑观测列联表，直观查看每个格子的 <b>期望频数 E</b> 与 <b>χ² 贡献</b>；在“独立/同质”原假设下反复洗牌重抽，观察模拟 χ² 分布如何贴合理论 χ²<sub>df</sub> 曲线。</p>
+      </div>
+      <div class="lang-switch" role="group" aria-label="Language toggle">
+        <button type="button" id="langZh" aria-pressed="true">中文</button>
+        <button type="button" id="langEn" aria-pressed="false">EN</button>
+      </div>
+    </div>
+
+    <div class="formula">
+      <span class="chip"><span class="chip-label" data-i18n="f_e">期望频数</span><span><i>E</i> = <span class="frac"><span class="frac-num">Row Total × Col Total</span><span class="frac-den">Grand Total</span></span></span></span>
+      <span class="chip"><span class="chip-label" data-i18n="f_chi">检验统计量</span><span>χ² = ∑ <span class="frac"><span class="frac-num">(<i>O</i> − <i>E</i>)²</span><span class="frac-den"><i>E</i></span></span></span></span>
+      <span class="chip"><span class="chip-label" data-i18n="f_df">自由度</span><span>df = (<i>r</i> − 1)(<i>c</i> − 1) = <b id="fDf">1</b></span></span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <section class="card" aria-label="观测列联表">
+      <h2 data-i18n="sec_tbl">1 · 编辑观测频数表 (Observed Counts)</h2>
+
+      <div class="presets" id="sizePills">
+        <button type="button" data-sz="2x2" class="active">2×2</button>
+        <button type="button" data-sz="2x3">2×3</button>
+        <button type="button" data-sz="3x2">3×2</button>
+        <button type="button" data-sz="3x3">3×3</button>
+      </div>
+
+      <div class="presets" id="exPresets">
+        <button type="button" data-ex="drug" data-i18n="ex_drug">示例：药物疗效</button>
+        <button type="button" data-ex="indep" data-i18n="ex_indep">示例：近似独立</button>
+        <button type="button" data-ex="subj" data-i18n="ex_subj">示例：3×3 年级学科</button>
+        <button type="button" data-ex="lowE" data-i18n="ex_lowe">示例：E &lt; 5 警示</button>
+      </div>
+
+      <div id="tableWrap"></div>
+      <div class="cond ok" id="condBox"></div>
+
+      <div class="actions">
+        <button type="button" class="btn primary" id="draw1" data-i18n="btn_1">随机洗牌 1 次</button>
+        <button type="button" class="btn" id="draw100">+ 100</button>
+        <button type="button" class="btn" id="draw1000">+ 1,000</button>
+        <button type="button" class="btn reset" id="resetBtn" data-i18n="btn_reset">Reset</button>
+        <button type="button" class="btn" id="csvBtn" disabled data-i18n="btn_csv">CSV</button>
+      </div>
+      <div style="margin-top:8px;font-size:12.5px;color:var(--ink-2)">
+        <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" id="chkCurve" checked style="width:16px;height:16px;accent-color:var(--sage)">
+          <span data-i18n="tog_curve">叠加理论 χ²<sub>df</sub> 密度曲线</span>
+        </label>
+      </div>
+    </section>
+
+    <div>
+      <div class="stats">
+        <div class="stat"><div class="k" data-i18n="st_obs">观测 χ²<sub>obs</sub></div><div class="v" id="stObs">8.68</div><div class="s" id="stDf">df = 1</div></div>
+        <div class="stat highlight"><div class="k" data-i18n="st_pt">理论 p-value</div><div class="v" id="stPTheo">0.0032</div><div class="s" data-i18n="st_pts">χ²_df 右尾面积</div></div>
+        <div class="stat"><div class="k" data-i18n="st_ps">模拟 p-value</div><div class="v" id="stPSim">—</div><div class="s" id="stSimCnt">0 shuffles</div></div>
+        <div class="stat"><div class="k" data-i18n="st_min">最小期望频数</div><div class="v" id="stMinE">26.0</div><div class="s" data-i18n="st_mins">需全部 ≥ 5</div></div>
+      </div>
+
+      <section class="card">
+        <div class="chart-head">
+          <h2 data-i18n="chart_title">H₀ 随机洗牌 χ²* 分布（红色 = ≥ χ²_obs 的极端结果）</h2>
+          <div class="legend">
+            <span><i class="swatch" style="background:var(--sage)"></i><span>χ²* &lt; obs</span></span>
+            <span><i class="swatch" style="background:var(--accent)"></i><span>χ²* ≥ obs (p-value)</span></span>
+            <span><i class="swatch-line"></i><span data-i18n="leg_c">理论 χ²_df</span></span>
+          </div>
+        </div>
+        <canvas id="chart" width="680" height="310"></canvas>
+        <div class="empty-note" id="emptyNote"></div>
+        <div class="verdict" id="verdictBox"></div>
+      </section>
+
+      <section class="card perm-card">
+        <h2 data-i18n="sec_perm">最近一次 H₀ 洗牌重排结果（保持行、列总计不变）</h2>
+        <div id="permBody"></div>
+      </section>
+    </div>
+  </div>
+
+  <footer>
+    <span data-i18n="foot">提示：在零假设成立时，把 N 个个体重新随机分配到各组（固定行列边际和），所得模拟 χ²* 的均值约等于自由度 df；按</span> <span class="kbd">Space</span> <span data-i18n="foot2">洗牌 1 次。</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var PRESETS = {
+    drug:  { r:2, c:2, m:[[42,18],[26,34]], rL:["实验组 Tx","对照组 Ctrl"], cL:["好转 Yes","未好转 No"], rLE:["Treatment","Control"], cLE:["Improved","Not"] },
+    indep: { r:2, c:3, m:[[24,30,16],[26,28,16]], rL:["A 班","B 班"], cL:["选修 1","选修 2","选修 3"], rLE:["Class A","Class B"], cLE:["Opt 1","Opt 2","Opt 3"] },
+    subj:  { r:3, c:3, m:[[28,16,12],[18,26,16],[14,18,28]], rL:["高一","高二","高三"], cL:["理工","社科","艺术"], rLE:["Grade 10","Grade 11","Grade 12"], cLE:["STEM","Social","Arts"] },
+    lowE:  { r:2, c:2, m:[[8,2],[3,17]], rL:["组 1","组 2"], cL:["成功","失败"], rLE:["Group 1","Group 2"], cLE:["Success","Failure"] }
+  };
+
+  var state = {
+    r:2, c:2, m:[[42,18],[26,34]],
+    rL:["实验组 Tx","对照组 Ctrl"], cL:["好转 Yes","未好转 No"],
+    rLE:["Treatment","Control"], cLE:["Improved","Not"],
+    sims:[], lastPerm:null, lang:"zh"
+  };
+
+  // ---------- Exact Chi-Square Math (Lanczos + Incomplete Gamma) ----------
+  function logGamma(z){
+    var cof=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];
+    var x=z, y=z, tmp=x+5.5; tmp -= (x+0.5)*Math.log(tmp);
+    var ser=1.000000000190015;
+    for(var j=0;j<6;j++) ser += cof[j]/++y;
+    return -tmp + Math.log(2.5066282746310005*ser/x);
+  }
+  function gser(a, x){
+    var gln=logGamma(a), ap=a, del=1/a, sum=del;
+    for(var n=1;n<=200;n++){
+      ap++; del *= x/ap; sum += del;
+      if(Math.abs(del) < Math.abs(sum)*3e-9) return sum * Math.exp(-x + a*Math.log(x) - gln);
+    }
+    return sum * Math.exp(-x + a*Math.log(x) - gln);
+  }
+  function gcf(a, x){
+    var gln=logGamma(a), b=x+1-a, c=1/1e-30, d=1/b, h=d;
+    for(var i=1;i<=200;i++){
+      var an = -i*(i-a); b += 2;
+      d = an*d + b; if(Math.abs(d)<1e-30) d=1e-30;
+      c = b + an/c; if(Math.abs(c)<1e-30) c=1e-30;
+      d = 1/d; var del = d*c; h *= del;
+      if(Math.abs(del-1) < 3e-9) break;
+    }
+    return Math.exp(-x + a*Math.log(x) - gln) * h;
+  }
+  function gammaq(a, x){
+    if(x<=0) return 1;
+    return x < a+1 ? 1 - gser(a,x) : gcf(a,x);
+  }
+  function chi2PVal(x, df){ return x <= 0 ? 1 : gammaq(df/2, x/2); }
+  function chi2PDF(x, df){
+    if(x <= 0) return df === 2 ? 0.5 : 0;
+    var k = df/2;
+    return Math.exp((k-1)*Math.log(x) - x/2 - k*Math.LN2 - logGamma(k));
+  }
+  function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function arrMax(a){ var m=0; for(var i=0;i<a.length;i++) if(a[i]>m) m=a[i]; return m; }
+
+  var I18N = {
+    zh:{
+      nav_ci:"置信区间捕获率", nav_ep:"两类错误与功效", nav_tz:"t 分布 vs 正态 z", nav_chi:"卡方列联表检验",
+      h1:"卡方列联表检验模拟器 <em>χ² Permutation &amp; Curve</em>",
+      sub:"自由编辑观测列联表，直观查看每个格子的 <b>期望频数 E</b> 与 <b>χ² 贡献</b>；在“独立/同质”原假设下反复洗牌重抽，观察模拟 χ² 分布如何贴合理论 χ²<sub>df</sub> 曲线。",
+      f_e:"期望频数", f_chi:"检验统计量", f_df:"自由度",
+      sec_tbl:"1 · 编辑观测频数表 (Observed Counts)",
+      ex_drug:"示例：药物疗效", ex_indep:"示例：近似独立", ex_subj:"示例：3×3 年级学科", ex_lowe:"示例：E < 5 警示",
+      btn_1:"随机洗牌 1 次", btn_reset:"Reset", tog_curve:"叠加理论 χ²_df 密度曲线",
+      st_obs:"观测 χ²_obs", st_pt:"理论 p-value", st_pts:"χ²_df 右尾面积", st_ps:"模拟 p-value", st_min:"最小期望频数", st_mins:"需全部 ≥ 5",
+      chart_title:"H₀ 随机洗牌 χ²* 分布（红色 = ≥ χ²_obs 的极端结果）", leg_c:"理论 χ²_df",
+      sec_perm:"最近一次 H₀ 洗牌重排结果（保持行、列总计不变）",
+      foot:"提示：在零假设成立时，把 N 个个体重新随机分配到各组（固定行列边际和），所得模拟 χ²* 的均值约等于自由度 df；按", foot2:"洗牌 1 次。",
+      empty:"尚未洗牌 — 点击「随机洗牌 1 次」或「+ 1,000」体验零假设下的抽样分布。",
+      perm_empty:"点击洗牌后，这里将展示一张在 H₀ 下随机打乱生成的列联表及其 χ²*。"
+    },
+    en:{
+      nav_ci:"CI Capture Simulator", nav_ep:"Errors & Power", nav_tz:"t vs. Normal z", nav_chi:"Chi-Square Table",
+      h1:"Chi-Square Two-Way Simulator <em>Permutation &amp; Curve</em>",
+      sub:"Edit any contingency table to inspect <b>Expected counts E</b> and cell <b>χ² contributions</b>, then permute under H₀ to watch the simulated χ² distribution match χ²<sub>df</sub>.",
+      f_e:"Expected", f_chi:"Statistic", f_df:"df",
+      sec_tbl:"1 · Observed Counts Table",
+      ex_drug:"Preset: Drug Trial", ex_indep:"Preset: Near Indep", ex_subj:"Preset: 3×3 Subjects", ex_lowe:"Preset: Low E Warning",
+      btn_1:"Shuffle 1×", btn_reset:"Reset", tog_curve:"Overlay χ²_df curve",
+      st_obs:"Observed χ²", st_pt:"Theory p-value", st_pts:"Upper tail of χ²_df", st_ps:"Simulated p-value", st_min:"Min Expected E", st_mins:"Need all ≥ 5",
+      chart_title:"Null Permutation χ²* Distribution (Terracotta = ≥ observed χ²)", leg_c:"Theory χ²_df",
+      sec_perm:"Most Recent Null Shuffle (Fixed Row & Column Totals)",
+      foot:"Note: Under H₀, permuting all N individuals while fixing row/column totals produces χ²* values centered near df; press", foot2:"to shuffle once.",
+      empty:"No shuffles yet — click Shuffle 1× or + 1,000 to generate the null distribution.",
+      perm_empty:"Click Shuffle to view a randomly permuted contingency table generated under H₀."
+    }
+  };
+  function t(k){ return (I18N[state.lang] && I18N[state.lang][k]) || I18N.zh[k] || k; }
+
+  function computeTable(mat){
+    var r = state.r, c = state.c, rowT = new Array(r).fill(0), colT = new Array(c).fill(0), tot = 0, i, j;
+    for(i=0;i<r;i++) for(j=0;j<c;j++){ rowT[i] += mat[i][j]; colT[j] += mat[i][j]; tot += mat[i][j]; }
+    var E = [], contrib = [], chi2 = 0, minE = Infinity;
+    for(i=0;i<r;i++){
+      E[i] = []; contrib[i] = [];
+      for(j=0;j<c;j++){
+        var e = tot > 0 ? (rowT[i] * colT[j] / tot) : 0;
+        E[i][j] = e;
+        if(e < minE) minE = e;
+        var ct = e > 0 ? Math.pow(mat[i][j] - e, 2) / e : 0;
+        contrib[i][j] = ct;
+        chi2 += ct;
+      }
+    }
+    return { rowT:rowT, colT:colT, tot:tot, E:E, contrib:contrib, chi2:chi2, minE: tot>0 ? minE : 0, df:(r-1)*(c-1) };
+  }
+
+  function buildEditableTable(){
+    var stats = computeTable(state.m);
+    var rL = state.lang === "zh" ? state.rL : state.rLE;
+    var cL = state.lang === "zh" ? state.cL : state.cLE;
+    var h = '<table class="ctbl"><thead><tr><th></th>';
+    for(var j=0;j<state.c;j++) h += '<th>' + (cL[j] || ("Col "+(j+1))) + '</th>';
+    h += '<th>Total</th></tr></thead><tbody>';
+    for(var i=0;i<state.r;i++){
+      h += '<tr><th>' + (rL[i] || ("Row "+(i+1))) + '</th>';
+      for(j=0;j<state.c;j++){
+        var cRatio = stats.chi2 > 0 ? stats.contrib[i][j] / stats.chi2 : 0;
+        var bg = cRatio > 0.25 ? ' style="background:var(--accent-soft)"' : '';
+        h += '<td' + bg + '><input type="number" class="cell-in" data-r="'+i+'" data-c="'+j+'" min="0" max="500" step="1" value="'+state.m[i][j]+'">' +
+             '<div class="cell-meta"><span>E=' + stats.E[i][j].toFixed(1) + '</span>' +
+             '<span class="' + (cRatio>0.25?'c-hi':'') + '">χ²=' + stats.contrib[i][j].toFixed(2) + '</span></div></td>';
+      }
+      h += '<td class="tot">' + stats.rowT[i] + '</td></tr>';
+    }
+    h += '<tr><th>Total</th>';
+    for(j=0;j<state.c;j++) h += '<td class="tot">' + stats.colT[j] + '</td>';
+    h += '<td class="tot">' + stats.tot + '</td></tr></tbody></table>';
+    $("tableWrap").innerHTML = h;
+
+    document.querySelectorAll(".cell-in").forEach(function(inp){
+      inp.addEventListener("change", function(){
+        var ri = parseInt(this.dataset.r, 10), ci = parseInt(this.dataset.c, 10);
+        var v = parseInt(this.value, 10);
+        state.m[ri][ci] = isNaN(v) || v < 0 ? 0 : Math.min(500, v);
+        state.sims = []; state.lastPerm = null;
+        buildEditableTable(); syncStatsAndChart();
+      });
+    });
+  }
+
+  function shuffleOnce(stats){
+    var r = state.r, c = state.c, tot = stats.tot;
+    var sim = []; for(var i=0;i<r;i++) sim.push(new Array(c).fill(0));
+    if(tot <= 0) return { sim:sim, chi2:0 };
+
+    if(tot <= 2500){
+      var pool = [];
+      for(var j=0;j<c;j++) for(var k=0;k<stats.colT[j];k++) pool.push(j);
+      for(var idx=pool.length-1;idx>0;idx--){
+        var sw = Math.floor(Math.random() * (idx + 1));
+        var tmp = pool[idx]; pool[idx] = pool[sw]; pool[sw] = tmp;
+      }
+      var ptr = 0;
+      for(i=0;i<r;i++){
+        for(k=0;k<stats.rowT[i];k++) sim[i][pool[ptr++]]++;
+      }
+    } else {
+      var cdf = [], acc = 0;
+      for(j=0;j<c;j++){ acc += stats.colT[j]/tot; cdf.push(acc); }
+      for(i=0;i<r;i++){
+        for(k=0;k<stats.rowT[i];k++){
+          var u = Math.random(), col = 0;
+          while(col < c-1 && u > cdf[col]) col++;
+          sim[i][col]++;
+        }
+      }
+    }
+
+    var chi2 = 0;
+    for(i=0;i<r;i++) for(j=0;j<c;j++){
+      var e = stats.E[i][j];
+      if(e > 0) chi2 += Math.pow(sim[i][j] - e, 2) / e;
+    }
+    return { sim:sim, chi2:chi2 };
+  }
+
+  function runShuffles(k){
+    var stats = computeTable(state.m);
+    if(stats.tot <= 0) return;
+    for(var i=0;i<k;i++){
+      var res = shuffleOnce(stats);
+      state.sims.push(res.chi2);
+      if(i === k - 1) state.lastPerm = res;
+    }
+    syncStatsAndChart();
+  }
+
+  function syncStatsAndChart(){
+    var stats = computeTable(state.m), df = stats.df;
+    var pTheo = chi2PVal(stats.chi2, df);
+    $("fDf").textContent = df;
+    $("stObs").textContent = stats.chi2.toFixed(2);
+    $("stDf").textContent = "df = " + df;
+    $("stPTheo").textContent = pTheo < 0.0001 ? "< 0.0001" : pTheo.toFixed(4);
+    $("stMinE").textContent = stats.minE.toFixed(1);
+
+    var cond = $("condBox");
+    var okE = stats.minE >= 5 && stats.tot > 0;
+    cond.className = "cond " + (okE ? "ok" : "warn");
+    cond.textContent = okE
+      ? (state.lang==="zh" ? "✓ Large Counts 满足：最小期望频数 E = " + stats.minE.toFixed(1) + " ≥ 5，可用 χ² 曲线计算 p-value。" : "✓ Large Counts met: minimum expected count = " + stats.minE.toFixed(1) + " ≥ 5.")
+      : (state.lang==="zh" ? "⚠ 存在期望频数 < 5（最小 " + stats.minE.toFixed(1) + "）：理论 χ² 曲线可能不准，更适合直接用右方随机洗牌的模拟 p-value！" : "⚠ Minimum expected count is " + stats.minE.toFixed(1) + " (< 5). Theoretical χ² may be inaccurate; rely on the permutation p-value!");
+
+    var N = state.sims.length;
+    $("csvBtn").disabled = N === 0;
+    $("emptyNote").hidden = N > 0;
+    $("emptyNote").textContent = t("empty");
+
+    var pSimText = "—";
+    if(N === 0){
+      $("stPSim").textContent = "—";
+      $("stSimCnt").textContent = state.lang==="zh" ? "0 次洗牌" : "0 shuffles";
+    } else {
+      var ge = 0; for(var i=0;i<N;i++) if(state.sims[i] >= stats.chi2 - 1e-9) ge++;
+      pSimText = (ge / N).toFixed(4);
+      $("stPSim").textContent = pSimText;
+      $("stSimCnt").textContent = ge + " / " + N.toLocaleString();
+    }
+
+    var pUse = N >= 50 ? (ge / N) : pTheo;
+    var sig = pUse < 0.05;
+    $("verdictBox").innerHTML = state.lang === "zh"
+      ? ("<b>结论（α = 0.05）：</b>p-value = " + (pTheo<0.0001?"< 0.0001":pTheo.toFixed(4)) + (N?("（模拟 " + pSimText + "）"):"") + " — " + (sig ? "<b>拒绝 H₀</b>，有充分证据表明两变量存在关联/分布不同。" : "<b>不拒绝 H₀</b>，观测差异可归因于随机抽样波动。"))
+      : ("<b>Decision (α = 0.05):</b> p-value = " + (pTheo<0.0001?"< 0.0001":pTheo.toFixed(4)) + (N?(" (sim " + pSimText + ")"):"") + " — " + (sig ? "<b>Reject H₀</b>; convincing evidence of an association / difference." : "<b>Fail to reject H₀</b>; differences could plausibly arise by chance."));
+
+    // Last perm table
+    if(!state.lastPerm){
+      $("permBody").innerHTML = '<p style="margin:0;color:var(--ink-2);font-size:13.5px">' + t("perm_empty") + '</p>';
+    } else {
+      var rL = state.lang==="zh" ? state.rL : state.rLE;
+      var cL = state.lang==="zh" ? state.cL : state.cLE;
+      var ph = '<div style="margin-bottom:8px;font-size:13.5px">' + (state.lang==="zh"?"本次随机洗牌得到 ":"Shuffled χ²* = ") + '<b class="mono">' + state.lastPerm.chi2.toFixed(2) + '</b>' +
+        '（' + (state.lastPerm.chi2 >= stats.chi2 ? (state.lang==="zh"?"≥ 观测值（计入极端尾部）":"≥ observed") : (state.lang==="zh"?"< 观测值":"< observed")) + '）</div>';
+      ph += '<table class="ctbl"><thead><tr><th></th>';
+      for(var j=0;j<state.c;j++) ph += '<th>' + (cL[j]||("C"+(j+1))) + '</th>';
+      ph += '<th>Total</th></tr></thead><tbody>';
+      for(var r=0;r<state.r;r++){
+        ph += '<tr><th>' + (rL[r]||("R"+(r+1))) + '</th>';
+        for(j=0;j<state.c;j++) ph += '<td class="mono">' + state.lastPerm.sim[r][j] + '</td>';
+        ph += '<td class="tot">' + stats.rowT[r] + '</td></tr>';
+      }
+      ph += '</tbody></table>';
+      $("permBody").innerHTML = ph;
+    }
+
+    drawChart(stats);
+  }
+
+  function drawChart(stats){
+    var cv = $("chart"), wrap = cv.parentElement;
+    var W = wrap.clientWidth, H = cv.clientHeight || 310, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+    var ctx = cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+
+    var df = stats.df, sims = state.sims, N = sims.length;
+    var lo = 0, hi = Math.max(df + 5 * Math.sqrt(2*df), stats.chi2 * 1.2, 10);
+    if(N > 0){ var mx = arrMax(sims); if(mx > hi) hi = mx * 1.06; }
+    var bins = 28, bw = (hi - lo) / bins, counts = new Array(bins).fill(0);
+    for(var i=0;i<N;i++){
+      var idx = Math.floor((sims[i] - lo) / bw);
+      if(idx >= 0 && idx < bins) counts[idx]++;
+    }
+
+    var maxD = 0.05;
+    if(N > 0) for(i=0;i<bins;i++){ var d = counts[i] / (N * bw); if(d > maxD) maxD = d; }
+    var showC = $("chkCurve").checked;
+    if(showC){
+      var modeX = df > 2 ? df - 2 : 0.15;
+      var peak = chi2PDF(modeX, df);
+      if(df === 1) peak = Math.min(peak, 1.2);
+      if(peak > maxD) maxD = peak;
+    }
+    var yMax = maxD * 1.15;
+    var padL = 24, padR = 16, padT = 20, padB = 30, cw = W - padL - padR, ch = H - padT - padB;
+    function X(v){ return padL + (v - lo) / (hi - lo) * cw; }
+    function Y(d){ return padT + ch - Math.min(ch, (d / yMax) * ch); }
+
+    var sage = cssVar("--sage"), accent = cssVar("--accent"), navy = cssVar("--navy"), muted = cssVar("--ink-3"), line = cssVar("--line");
+
+    // Gridlines
+    ctx.strokeStyle = line; ctx.lineWidth = 1;
+    for(var g=1;g<=3;g++){ var yy = padT + ch*(1-g/3); ctx.beginPath(); ctx.moveTo(padL,yy); ctx.lineTo(W-padR,yy); ctx.stroke(); }
+
+    // Bars
+    if(N > 0){
+      for(var b=0;b<bins;b++){
+        if(!counts[b]) continue;
+        var xL = lo + b*bw, xR = lo + (b+1)*bw, mid = (xL + xR)/2;
+        var dens = counts[b] / (N * bw);
+        ctx.fillStyle = mid >= stats.chi2 ? accent : sage;
+        ctx.globalAlpha = 0.78;
+        var px0 = X(xL) + 0.6, px1 = X(xR) - 0.6;
+        ctx.fillRect(px0, Y(dens), Math.max(2, px1 - px0), padT + ch - Y(dens));
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // Chi2 curve + shaded upper tail
+    if(showC){
+      if(stats.chi2 < hi){
+        ctx.fillStyle = accent; ctx.globalAlpha = 0.24;
+        ctx.beginPath(); ctx.moveTo(X(Math.max(0.02, stats.chi2)), Y(0));
+        for(i=0;i<=80;i++){
+          var xv = Math.max(0.02, stats.chi2) + (hi - Math.max(0.02, stats.chi2)) * i / 80;
+          ctx.lineTo(X(xv), Y(chi2PDF(xv, df)));
+        }
+        ctx.lineTo(X(hi), Y(0)); ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1;
+      }
+
+      ctx.strokeStyle = navy; ctx.lineWidth = 2.4; ctx.beginPath();
+      var startX = df === 1 ? 0.08 : 0.01;
+      for(i=0;i<=160;i++){
+        var x2 = startX + (hi - startX) * i / 160;
+        var y2 = Y(chi2PDF(x2, df));
+        if(i===0) ctx.moveTo(X(x2), y2); else ctx.lineTo(X(x2), y2);
+      }
+      ctx.stroke();
+    }
+
+    // Observed chi2 vertical marker
+    if(stats.chi2 <= hi){
+      var ox = X(stats.chi2);
+      ctx.strokeStyle = accent; ctx.lineWidth = 2; ctx.setLineDash([5,3]);
+      ctx.beginPath(); ctx.moveTo(ox, padT); ctx.lineTo(ox, Y(0)); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = accent; ctx.font = "700 11.5px ui-monospace, Menlo, monospace";
+      ctx.textAlign = stats.chi2 > hi * 0.75 ? "right" : "left"; ctx.textBaseline = "top";
+      ctx.fillText("obs=" + stats.chi2.toFixed(2), ox + (stats.chi2>hi*0.75?-5:5), padT + 2);
+    }
+
+    ctx.strokeStyle = muted; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, Y(0)); ctx.lineTo(W-padR, Y(0)); ctx.stroke();
+    ctx.fillStyle = muted; ctx.font = "11px ui-monospace, Menlo, monospace"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+    for(var tk=0;tk<=4;tk++){ var tv = lo + (hi - lo) * tk / 4; ctx.fillText(tv.toFixed(1), X(tv), Y(0)+7); }
+  }
+
+  function resizeTable(nr, nc){
+    var m = [];
+    for(var i=0;i<nr;i++){
+      var row = [];
+      for(var j=0;j<nc;j++) row.push((state.m[i] && state.m[i][j] !== undefined) ? state.m[i][j] : 15);
+      m.push(row);
+    }
+    state.r = nr; state.c = nc; state.m = m;
+    state.rL = ["组 1","组 2","组 3"].slice(0,nr); state.rLE = ["Row 1","Row 2","Row 3"].slice(0,nr);
+    state.cL = ["类 A","类 B","类 C"].slice(0,nc); state.cLE = ["Col A","Col B","Col C"].slice(0,nc);
+    state.sims = []; state.lastPerm = null;
+    document.querySelectorAll("#sizePills button").forEach(function(b){ b.classList.toggle("active", b.dataset.sz === (nr+"x"+nc)); });
+    buildEditableTable(); syncStatsAndChart();
+  }
+
+  function loadPreset(key){
+    var p = PRESETS[key];
+    state.r = p.r; state.c = p.c;
+    state.m = p.m.map(function(row){ return row.slice(); });
+    state.rL = p.rL.slice(); state.cL = p.cL.slice();
+    state.rLE = p.rLE.slice(); state.cLE = p.cLE.slice();
+    state.sims = []; state.lastPerm = null;
+    document.querySelectorAll("#sizePills button").forEach(function(b){ b.classList.toggle("active", b.dataset.sz === (p.r+"x"+p.c)); });
+    buildEditableTable(); syncStatsAndChart();
+  }
+
+  function applyLang(){
+    document.documentElement.lang = state.lang === "zh" ? "zh-CN" : "en";
+    $("langZh").setAttribute("aria-pressed", String(state.lang==="zh"));
+    $("langEn").setAttribute("aria-pressed", String(state.lang==="en"));
+    document.querySelectorAll("[data-i18n]").forEach(function(el){ el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll("[data-i18n-html]").forEach(function(el){ el.innerHTML = t(el.dataset.i18nHtml); });
+    buildEditableTable(); syncStatsAndChart();
+  }
+
+  document.querySelectorAll("#sizePills button").forEach(function(b){
+    b.addEventListener("click", function(){ var parts=this.dataset.sz.split("x"); resizeTable(parseInt(parts[0],10), parseInt(parts[1],10)); });
+  });
+  document.querySelectorAll("#exPresets button").forEach(function(b){
+    b.addEventListener("click", function(){ loadPreset(this.dataset.ex); });
+  });
+  $("draw1").addEventListener("click", function(){ runShuffles(1); });
+  $("draw100").addEventListener("click", function(){ runShuffles(100); });
+  $("draw1000").addEventListener("click", function(){ runShuffles(1000); });
+  $("resetBtn").addEventListener("click", function(){ state.sims = []; state.lastPerm = null; syncStatsAndChart(); });
+  $("chkCurve").addEventListener("change", function(){ syncStatsAndChart(); });
+
+  $("csvBtn").addEventListener("click", function(){
+    if(!state.sims.length) return;
+    var rows = ["shuffle,chi_square"];
+    for(var i=0;i<state.sims.length;i++) rows.push((i+1) + "," + state.sims[i].toFixed(6));
+    var blob = new Blob([rows.join("\n")], {type:"text/csv"});
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "chi-square-permutations.csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1500);
+  });
+
+  $("langZh").addEventListener("click", function(){ state.lang = "zh"; try{localStorage.setItem("mg-sampling-lang","zh");}catch(e){} applyLang(); });
+  $("langEn").addEventListener("click", function(){ state.lang = "en"; try{localStorage.setItem("mg-sampling-lang","en");}catch(e){} applyLang(); });
+
+  document.addEventListener("keydown", function(e){
+    if(e.code === "Space" && !/INPUT|BUTTON|SELECT|TEXTAREA/.test(document.activeElement.tagName)){ e.preventDefault(); runShuffles(1); }
+  });
+
+  var resizeT = null;
+  window.addEventListener("resize", function(){ clearTimeout(resizeT); resizeT = setTimeout(function(){ syncStatsAndChart(); }, 100); });
+  if(window.matchMedia){
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    if(mq.addEventListener) mq.addEventListener("change", function(){ syncStatsAndChart(); });
+  }
+
+  try { var saved = localStorage.getItem("mg-sampling-lang"); if(saved === "en" || saved === "zh") state.lang = saved; } catch(e){}
+  applyLang();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:,">
+<title>两类错误与检验功效模拟器 · Type I / Type II Error & Power</title>
+<script>
+try { if (window.self !== window.top) document.documentElement.classList.add('in-embed'); }
+catch (e) { document.documentElement.classList.add('in-embed'); }
+</script>
+<style>
+:root{
+  --ground:#F5F2EA; --surface:#FFFDF8; --surface-2:#FAF7F0; --line:#E6E0D3; --line-soft:#EFEADF;
+  --navy:#172A48; --navy-2:#223B63; --navy-soft:#E9EEF5;
+  --ink:#16203A; --ink-2:#4B556B; --ink-3:#737B8E;
+  --sage:#1D6B53; --sage-soft:#E4F3EC;
+  --accent:#C86D44; --accent-soft:#FBECE4;
+  --gold:#B8862D; --gold-soft:#FBF1DB; --gold-bright:#E8B04A;
+  --danger:#B4342F; --danger-soft:#FDECEB;
+  --serif:"Iowan Old Style","Palatino Linotype","Charter",Georgia,"Songti SC","STSong",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  --shadow-sm:0 1px 2px rgba(23,42,72,.04),0 4px 12px -6px rgba(23,42,72,.08);
+  --r-md:14px; --r-sm:9px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --ground:#11161F; --surface:#19202C; --surface-2:#222B3A; --line:#303B4F; --line-soft:#263042;
+    --navy:#8FB0E0; --navy-2:#A6C2EB; --navy-soft:#1F2D44;
+    --ink:#EDF1F7; --ink-2:#B4BECE; --ink-3:#8692A6;
+    --sage:#38C6A8; --sage-soft:#14332C;
+    --accent:#EA8E63; --accent-soft:#3B241A;
+    --gold:#E8B04A; --gold-soft:#382C13; --gold-bright:#F2C46D;
+    --danger:#F87171; --danger-soft:#3B1C1E;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.35),0 6px 16px -6px rgba(0,0,0,.45);
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ground);color:var(--ink);font:400 15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button,input[type=number],select{min-height:40px}
+:focus-visible{outline:2.5px solid var(--gold);outline-offset:2px;border-radius:var(--r-sm)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+.sim-nav{background:var(--surface);border-bottom:1px solid var(--line);padding:8px 18px}
+.sim-nav-inner{max-width:1160px;margin:0 auto;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sim-nav a,.sim-nav strong{padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap}
+.sim-nav a{color:var(--ink-2);border:1px solid transparent}
+.sim-nav a:hover{background:var(--surface-2);border-color:var(--line);color:var(--ink)}
+.sim-nav strong{background:#172A48;color:#fff;border:1px solid #172A48}
+@media(prefers-color-scheme:dark){.sim-nav strong{background:var(--sage);color:#0E161B;border-color:var(--sage)}}
+.in-embed .sim-nav{display:none}
+
+.wrap{max-width:1160px;margin:0 auto;padding:18px 18px 40px}
+header.top{padding-bottom:16px;border-bottom:2px solid var(--line);margin-bottom:18px}
+.head-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.kicker{font:700 11.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin:0 0 6px}
+h1{font:700 clamp(24px,4vw,36px)/1.12 var(--serif);margin:0;letter-spacing:-.02em}
+h1 em{font-style:italic;color:var(--sage)}
+.sub{margin:8px 0 0;color:var(--ink-2);font-size:15px;max-width:740px}
+
+.lang-switch{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px;box-shadow:var(--shadow-sm);flex:none}
+.lang-switch button{min-height:30px;padding:0 12px;border:0;border-radius:999px;background:transparent;color:var(--ink-2);font-size:12.5px;font-weight:700;cursor:pointer}
+.lang-switch button[aria-pressed="true"]{background:#172A48;color:#fff}
+@media(prefers-color-scheme:dark){.lang-switch button[aria-pressed="true"]{background:var(--sage);color:#0E161B}}
+
+.layout{display:grid;grid-template-columns:340px 1fr;gap:18px;align-items:start}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:16px 18px;box-shadow:var(--shadow-sm)}
+.card h2{font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;margin:0 0 12px;color:var(--ink-3);font-weight:700}
+
+.seg-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.seg-row.three{grid-template-columns:repeat(3,1fr)}
+.seg-row button{min-height:36px;padding:0 8px;border-radius:9px;border:1px solid var(--line);background:var(--surface-2);font-size:12.5px;font-weight:700;color:var(--ink-2);cursor:pointer}
+.seg-row button[aria-pressed="true"]{background:#172A48;border-color:#172A48;color:#fff}
+@media(prefers-color-scheme:dark){.seg-row button[aria-pressed="true"]{background:var(--sage);border-color:var(--sage);color:#0E161B}}
+
+.ctl{margin-bottom:13px}
+.label-row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
+.label-row label{font-weight:700;font-size:13.5px}
+.num-input{width:82px;padding:4px 8px;text-align:right;font-family:var(--mono);font-weight:700;font-size:14.5px;color:var(--sage);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;min-height:36px}
+input[type=range]{width:100%;accent-color:var(--sage);height:30px;margin:0;cursor:pointer}
+
+.presets{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.presets button{min-height:30px;padding:0 8px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);cursor:pointer;font-weight:700;font-size:12px;color:var(--ink-2);flex:1}
+.presets button.active{background:#172A48;color:#fff;border-color:#172A48}
+@media(prefers-color-scheme:dark){.presets button.active{background:var(--sage);color:#0E161B;border-color:var(--sage)}}
+
+.toggles{margin-top:10px;display:grid;gap:4px;font-size:13px}
+.toggles label{display:flex;align-items:center;gap:8px;cursor:pointer;padding:3px 0}
+.toggles input{width:16px;height:16px;accent-color:var(--sage);cursor:pointer}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:680px){.stats{grid-template-columns:1fr 1fr}}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow-sm)}
+.stat .k{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+.stat .v{font-family:var(--mono);font-size:22px;font-weight:800;line-height:1.2;margin-top:3px}
+.stat .s{font-size:12px;color:var(--ink-2);margin-top:2px}
+.stat.s-alpha{border-color:rgba(180,52,47,.4);background:var(--danger-soft)}.stat.s-alpha .v{color:var(--danger)}
+.stat.s-beta{border-color:rgba(184,134,45,.45);background:var(--gold-soft)}.stat.s-beta .v{color:var(--gold)}
+.stat.s-power{border-color:rgba(29,107,83,.45);background:var(--sage-soft)}.stat.s-power .v{color:var(--sage)}
+
+.chart-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.chart-head h2{margin:0}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--ink-2);flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.swatch{display:inline-block;width:12px;height:12px;border-radius:3px}
+canvas{width:100%;height:330px;display:block}
+@media(max-width:640px){canvas{height:270px}}
+
+.sim-bar{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:700;font-size:13.5px;box-shadow:var(--shadow-sm)}
+.btn:hover{border-color:var(--navy)}
+.btn.btn-h0{border-color:var(--danger);color:var(--danger)}
+.btn.btn-ha{background:var(--sage);color:#fff;border-color:var(--sage)}
+@media(prefers-color-scheme:dark){.btn.btn-ha{color:#0E161B}}
+.sim-res{font-size:13.5px;color:var(--ink-2);margin-left:auto}
+.sim-res b{font-family:var(--mono);color:var(--ink)}
+
+.sub-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media(max-width:860px){.sub-grid{grid-template-columns:1fr}}
+
+table.mat{width:100%;border-collapse:collapse;font-size:13px}
+table.mat th,table.mat td{border:1px solid var(--line);padding:8px 10px;text-align:center}
+table.mat th{background:var(--surface-2);font-size:12px;color:var(--ink-2)}
+.cell-ok{background:var(--sage-soft);color:var(--sage);font-weight:700}
+.cell-t1{background:var(--danger-soft);color:var(--danger);font-weight:700}
+.cell-t2{background:var(--gold-soft);color:#784E12;font-weight:700}
+@media(prefers-color-scheme:dark){.cell-t2{color:var(--gold-bright)}}
+
+.presets-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+@media(max-width:860px){.presets-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.presets-grid{grid-template-columns:1fr}}
+.preset-btn{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:10px 12px;text-align:left;cursor:pointer;box-shadow:var(--shadow-sm)}
+.preset-btn:hover{border-color:var(--sage)}
+.preset-btn strong{display:block;font-size:13px;margin-bottom:2px}
+.preset-btn span{font-size:12px;color:var(--ink-2)}
+
+.cheat-list{margin:0;padding-left:18px;font-size:13.5px;color:var(--ink-2);line-height:1.65}
+.cheat-list b{color:var(--ink)}
+footer{margin-top:18px;font-size:12.5px;color:var(--ink-3);text-align:center}
+</style>
+</head>
+<body>
+<nav class="sim-nav" aria-label="统计推断模拟器">
+  <div class="sim-nav-inner">
+    <a href="confidence-interval.html" data-i18n="nav_ci">置信区间捕获率</a>
+    <strong aria-current="page" data-i18n="nav_ep">两类错误与功效</strong>
+    <a href="t-vs-z.html" data-i18n="nav_tz">t 分布 vs 正态 z</a>
+    <a href="chi-square.html" data-i18n="nav_chi">卡方列联表检验</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <header class="top">
+    <div class="head-row">
+      <div>
+        <p class="kicker">AP Statistics · Units 3–4 · Hypothesis Testing</p>
+        <h1 data-i18n-html="h1">两类错误与检验功效 <em>Type I, Type II &amp; Power</em></h1>
+        <p class="sub" data-i18n-html="sub">同轴观察 <b>H₀</b> 分布与真实 <b>Hₐ</b> 分布，拖动 α、样本量 n 与效应量，直观看懂 α、β 与 Power (1−β) 的联动权衡。</p>
+      </div>
+      <div class="lang-switch" role="group" aria-label="Language toggle">
+        <button type="button" id="langZh" aria-pressed="true">中文</button>
+        <button type="button" id="langEn" aria-pressed="false">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <section class="card" aria-label="参数设置">
+      <h2 data-i18n="sec_ctrl">1 · 检验设定与杠杆</h2>
+
+      <div class="seg-row" role="group" aria-label="参数类型">
+        <button type="button" data-mode="mean" aria-pressed="true" data-i18n="m_mean">均值检验 (μ)</button>
+        <button type="button" data-mode="prop" aria-pressed="false" data-i18n="m_prop">比例检验 (p)</button>
+      </div>
+
+      <div class="seg-row three" role="group" aria-label="备择假设方向">
+        <button type="button" data-tail="gt" aria-pressed="true" data-i18n="ha_gt">右尾 (&gt;)</button>
+        <button type="button" data-tail="lt" aria-pressed="false" data-i18n="ha_lt">左尾 (&lt;)</button>
+        <button type="button" data-tail="two" aria-pressed="false" data-i18n="ha_two">双尾 (≠)</button>
+      </div>
+
+      <div class="ctl">
+        <div class="label-row"><label for="alphaRange" data-i18n="lbl_a">显著性水平 α</label><input type="number" class="num-input" id="alphaNum" min="0.005" max="0.20" step="0.005" value="0.05"></div>
+        <input type="range" id="alphaRange" min="0.005" max="0.20" step="0.005" value="0.05">
+        <div class="presets" id="aPresets">
+          <button type="button" data-a="0.01">0.01</button>
+          <button type="button" data-a="0.05" class="active">0.05</button>
+          <button type="button" data-a="0.10">0.10</button>
+        </div>
+      </div>
+
+      <div id="meanCtrls">
+        <div class="ctl">
+          <div class="label-row"><label for="mu0Range">H₀: μ₀</label><input type="number" class="num-input" id="mu0Num" min="10" max="90" step="1" value="50"></div>
+          <input type="range" id="mu0Range" min="20" max="80" step="1" value="50">
+        </div>
+        <div class="ctl">
+          <div class="label-row"><label for="muaRange" data-i18n="lbl_mua">真实总体均值 μₐ</label><input type="number" class="num-input" id="muaNum" min="10" max="90" step="0.5" value="55"></div>
+          <input type="range" id="muaRange" min="20" max="80" step="0.5" value="55">
+        </div>
+        <div class="ctl">
+          <div class="label-row"><label for="sdRange">总体 σ</label><input type="number" class="num-input" id="sdNum" min="2" max="40" step="1" value="12"></div>
+          <input type="range" id="sdRange" min="2" max="30" step="1" value="12">
+        </div>
+      </div>
+
+      <div id="propCtrls" hidden>
+        <div class="ctl">
+          <div class="label-row"><label for="p0Range">H₀: p₀</label><input type="number" class="num-input" id="p0Num" min="0.10" max="0.90" step="0.01" value="0.50"></div>
+          <input type="range" id="p0Range" min="0.10" max="0.90" step="0.01" value="0.50">
+        </div>
+        <div class="ctl">
+          <div class="label-row"><label for="paRange" data-i18n="lbl_pa">真实总体比例 pₐ</label><input type="number" class="num-input" id="paNum" min="0.10" max="0.90" step="0.01" value="0.62"></div>
+          <input type="range" id="paRange" min="0.10" max="0.90" step="0.01" value="0.62">
+        </div>
+      </div>
+
+      <div class="ctl">
+        <div class="label-row"><label for="nRange" data-i18n="lbl_n">样本量 n</label><input type="number" class="num-input" id="nNum" min="5" max="1000" step="1" value="25"></div>
+        <input type="range" id="nRange" min="5" max="250" step="5" value="25">
+        <div class="presets" id="nPresets">
+          <button type="button" data-n="16">16</button>
+          <button type="button" data-n="25" class="active">25</button>
+          <button type="button" data-n="50">50</button>
+          <button type="button" data-n="100">100</button>
+          <button type="button" data-n="200">200</button>
+        </div>
+      </div>
+
+      <div class="toggles">
+        <label><input type="checkbox" id="chkA" checked><span data-i18n="tog_a">显示 α（Type I 弃真错误）</span></label>
+        <label><input type="checkbox" id="chkB" checked><span data-i18n="tog_b">显示 β（Type II 取伪错误）</span></label>
+        <label><input type="checkbox" id="chkP" checked><span data-i18n="tog_p">显示 Power = 1 − β（检验功效）</span></label>
+      </div>
+    </section>
+
+    <div>
+      <div class="stats">
+        <div class="stat s-alpha"><div class="k">Type I Error (α)</div><div class="v" id="stAlpha">5.0%</div><div class="s" id="stCrit">Cutoff: 53.95</div></div>
+        <div class="stat s-beta"><div class="k">Type II Error (β)</div><div class="v" id="stBeta">33.1%</div><div class="s" data-i18n="st_bs">Hₐ 为真却未拒绝</div></div>
+        <div class="stat s-power"><div class="k">Power (1 − β)</div><div class="v" id="stPower">66.9%</div><div class="s" data-i18n="st_ps">正确拒绝 H₀ 的概率</div></div>
+        <div class="stat"><div class="k" data-i18n="st_eff">效应量 Effect Size</div><div class="v" id="stEff">5.0</div><div class="s" id="stSE">SE = 2.40</div></div>
+      </div>
+
+      <section class="card">
+        <div class="chart-head">
+          <h2 data-i18n="chart_title">抽样分布与拒绝域对比图（竖虚线 = 拒绝域边界）</h2>
+          <div class="legend">
+            <span><i class="swatch" style="background:var(--danger)"></i>α (Type I)</span>
+            <span><i class="swatch" style="background:var(--gold)"></i>β (Type II)</span>
+            <span><i class="swatch" style="background:var(--sage)"></i>Power (1−β)</span>
+          </div>
+        </div>
+        <canvas id="chart" width="760" height="330"></canvas>
+
+        <div class="sim-bar">
+          <button type="button" class="btn btn-h0" id="simH0" data-i18n="btn_sim0">若 H₀ 为真：模拟 1,000 次</button>
+          <button type="button" class="btn btn-ha" id="simHa" data-i18n="btn_sima">若 Hₐ 为真：模拟 1,000 次</button>
+          <button type="button" class="btn" id="simClr" data-i18n="btn_clr">清空模拟</button>
+          <span class="sim-res" id="simRes"></span>
+        </div>
+      </section>
+
+      <div class="presets-grid">
+        <button type="button" class="preset-btn" data-pre="bigN"><strong data-i18n="pr1_t">增大样本量 n</strong><span data-i18n="pr1_b">n: 25 → 100（SE 减半，Power 飙升）</span></button>
+        <button type="button" class="preset-btn" data-pre="highA"><strong data-i18n="pr2_t">放宽 α (0.01 → 0.10)</strong><span data-i18n="pr2_b">α 变大 → β 减小、Power 增大</span></button>
+        <button type="button" class="preset-btn" data-pre="bigEff"><strong data-i18n="pr3_t">增大真实效应量</strong><span data-i18n="pr3_b">两峰拉远，更容易识别差异</span></button>
+        <button type="button" class="preset-btn" data-pre="lowPow"><strong data-i18n="pr4_t">小效应 + 小样本</strong><span data-i18n="pr4_b">典型低功效陷阱（易犯 Type II）</span></button>
+      </div>
+
+      <div class="sub-grid">
+        <section class="card">
+          <h2 data-i18n="sec_mat">假设检验 2×2 决策矩阵</h2>
+          <table class="mat">
+            <thead>
+              <tr><th></th><th data-i18n="th_h0t">实际情况：H₀ 为真</th><th data-i18n="th_hat">实际情况：Hₐ 为真</th></tr>
+            </thead>
+            <tbody>
+              <tr><th data-i18n="row_rej">决定：拒绝 H₀</th><td class="cell-t1" data-i18n="c_t1">Type I 错误 (α)</td><td class="cell-ok" data-i18n="c_pow">正确决策 · Power (1−β)</td></tr>
+              <tr><th data-i18n="row_fail">决定：不拒绝 H₀</th><td class="cell-ok" data-i18n="c_ok">正确决策 (1−α)</td><td class="cell-t2" data-i18n="c_t2">Type II 错误 (β)</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="card">
+          <h2 data-i18n="sec_cheat">AP 必考联动规律速记</h2>
+          <ul class="cheat-list" id="cheatList"></ul>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span data-i18n="foot">注意：α、β、Power 均为条件概率，在现实中只能控制 α 与 n，无法直接选定真实效应量。</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var state = { mode:"mean", tail:"gt", alpha:0.05, mu0:50, mua:55, sd:12, p0:0.50, pa:0.62, n:25, sim:null, lang:"zh" };
+
+  function normalPDF(x,mu,sd){ var z=(x-mu)/sd; return Math.exp(-0.5*z*z)/(sd*Math.sqrt(2*Math.PI)); }
+  function normalCDF(z){
+    var a=Math.abs(z), p=1/(1+0.2316419*a);
+    var poly=p*(0.319381530+p*(-0.356563782+p*(1.781477937+p*(-1.821255978+p*1.330274429))));
+    var c=1-Math.exp(-0.5*a*a)/Math.sqrt(2*Math.PI)*poly;
+    return z>=0 ? c : 1-c;
+  }
+  function normalInv(p){
+    var a=[-3.969683028665376e1,2.209460984245205e2,-2.759285104469687e2,1.383577518672690e2,-3.066479806614716e1,2.506628277459239];
+    var b=[-5.447609879822406e1,1.615858368580409e2,-1.556989798598866e2,6.680131188771972e1,-1.328068155288572e1];
+    var c=[-7.784894002430293e-3,-3.223964580411365e-1,-2.400758277161838,-2.549732539343734,4.374664141464968,2.938163982698783];
+    var d=[7.784695709041462e-3,3.224671290700398e-1,2.445134137142996,3.754408661907416];
+    var pl=0.02425, ph=1-pl, q, r;
+    if(p<pl){ q=Math.sqrt(-2*Math.log(p)); return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1); }
+    if(p>ph){ q=Math.sqrt(-2*Math.log(1-p)); return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1); }
+    q=p-0.5; r=q*q;
+    return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+  }
+  function clamp(v,lo,hi){ return Math.min(hi, Math.max(lo, v)); }
+  function cssVar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function randn(){ var u=0,v=0; while(u===0) u=Math.random(); while(v===0) v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+  var I18N = {
+    zh:{
+      nav_ci:"置信区间捕获率", nav_ep:"两类错误与功效", nav_tz:"t 分布 vs 正态 z", nav_chi:"卡方列联表检验",
+      h1:"两类错误与检验功效 <em>Type I, Type II &amp; Power</em>",
+      sub:"同轴观察 <b>H₀</b> 分布与真实 <b>Hₐ</b> 分布，拖动 α、样本量 n 与效应量，直观看懂 α、β 与 Power (1−β) 的联动权衡。",
+      sec_ctrl:"1 · 检验设定与杠杆", m_mean:"均值检验 (μ)", m_prop:"比例检验 (p)",
+      ha_gt:"右尾 (>)", ha_lt:"左尾 (<)", ha_two:"双尾 (≠)",
+      lbl_a:"显著性水平 α", lbl_mua:"真实总体均值 μₐ", lbl_pa:"真实总体比例 pₐ", lbl_n:"样本量 n",
+      tog_a:"显示 α（Type I 弃真错误）", tog_b:"显示 β（Type II 取伪错误）", tog_p:"显示 Power = 1 − β（检验功效）",
+      st_bs:"Hₐ 为真却未拒绝", st_ps:"正确拒绝 H₀ 的概率", st_eff:"效应量 Effect Size",
+      chart_title:"抽样分布与拒绝域对比图（竖虚线 = 拒绝域边界）",
+      btn_sim0:"若 H₀ 为真：模拟 1,000 次", btn_sima:"若 Hₐ 为真：模拟 1,000 次", btn_clr:"清空模拟",
+      pr1_t:"增大样本量 n", pr1_b:"n: 25 → 100（SE 减半，Power 飙升）",
+      pr2_t:"放宽 α (0.01 → 0.10)", pr2_b:"α 变大 → β 减小、Power 增大",
+      pr3_t:"增大真实效应量", pr3_b:"两峰拉远，更容易识别差异",
+      pr4_t:"小效应 + 小样本", pr4_b:"典型低功效陷阱（易犯 Type II）",
+      sec_mat:"假设检验 2×2 决策矩阵", th_h0t:"实际情况：H₀ 为真", th_hat:"实际情况：Hₐ 为真",
+      row_rej:"决定：拒绝 H₀", row_fail:"决定：不拒绝 H₀", c_t1:"Type I 错误 (α)", c_pow:"正确决策 · Power (1−β)", c_ok:"正确决策 (1−α)", c_t2:"Type II 错误 (β)",
+      sec_cheat:"AP 必考联动规律速记",
+      foot:"注意：α、β、Power 均为条件概率，在现实中只能控制 α 与 n，无法直接选定真实效应量。"
+    },
+    en:{
+      nav_ci:"CI Capture Simulator", nav_ep:"Errors & Power", nav_tz:"t vs. Normal z", nav_chi:"Chi-Square Table",
+      h1:"Type I Error, Type II Error &amp; Power",
+      sub:"Compare the <b>H₀</b> and true <b>Hₐ</b> sampling distributions side by side. Adjust α, n, and effect size to see how α, β, and Power interact.",
+      sec_ctrl:"1 · Test Settings & Levers", m_mean:"Mean Test (μ)", m_prop:"Prop Test (p)",
+      ha_gt:"Right (>)", ha_lt:"Left (<)", ha_two:"Two-sided (≠)",
+      lbl_a:"Significance level α", lbl_mua:"True population mean μₐ", lbl_pa:"True population prop pₐ", lbl_n:"Sample size n",
+      tog_a:"Show α (Type I Error)", tog_b:"Show β (Type II Error)", tog_p:"Show Power = 1 − β",
+      st_bs:"Fail to reject false H₀", st_ps:"Correctly reject false H₀", st_eff:"Effect Size",
+      chart_title:"H₀ vs. Hₐ Sampling Distributions (Dashed = Rejection Boundary)",
+      btn_sim0:"If H₀ True: Sim 1,000", btn_sima:"If Hₐ True: Sim 1,000", btn_clr:"Clear Sim",
+      pr1_t:"Increase Sample Size n", pr1_b:"n: 25 → 100 (smaller SE boosts Power)",
+      pr2_t:"Raise α (0.01 → 0.10)", pr2_b:"Higher α reduces β and boosts Power",
+      pr3_t:"Larger Effect Size", pr3_b:"Curves separate → higher Power",
+      pr4_t:"Small Effect + Small n", pr4_b:"Classic low-Power scenario (high β)",
+      sec_mat:"2×2 Hypothesis Test Decision Matrix", th_h0t:"Truth: H₀ is True", th_hat:"Truth: Hₐ is True",
+      row_rej:"Reject H₀", row_fail:"Fail to Reject H₀", c_t1:"Type I Error (α)", c_pow:"Correct · Power (1−β)", c_ok:"Correct (1−α)", c_t2:"Type II Error (β)",
+      sec_cheat:"Key Relationships to Remember",
+      foot:"Note: α, β, and Power are conditional probabilities; in practice you choose α and n, not the true effect size."
+    }
+  };
+  function t(k){ return (I18N[state.lang] && I18N[state.lang][k]) || I18N.zh[k] || k; }
+
+  function model(){
+    var isM = state.mode === "mean";
+    var mu0 = isM ? state.mu0 : state.p0;
+    var mua = isM ? state.mua : state.pa;
+    var se0 = isM ? state.sd / Math.sqrt(state.n) : Math.sqrt(state.p0*(1-state.p0)/state.n);
+    var sea = isM ? state.sd / Math.sqrt(state.n) : Math.sqrt(state.pa*(1-state.pa)/state.n);
+
+    var cL = null, cR = null, beta = 0;
+    if(state.tail === "gt"){
+      cR = mu0 + normalInv(1 - state.alpha) * se0;
+      beta = normalCDF((cR - mua) / sea);
+    } else if(state.tail === "lt"){
+      cL = mu0 - normalInv(1 - state.alpha) * se0;
+      beta = 1 - normalCDF((cL - mua) / sea);
+    } else {
+      var z = normalInv(1 - state.alpha / 2);
+      cL = mu0 - z * se0;
+      cR = mu0 + z * se0;
+      beta = normalCDF((cR - mua) / sea) - normalCDF((cL - mua) / sea);
+    }
+    return { isM:isM, mu0:mu0, mua:mua, se0:se0, sea:sea, cL:cL, cR:cR, beta:beta, power:1 - beta };
+  }
+
+  function updateUI(){
+    var m = model(), dec = m.isM ? 2 : 3;
+    $("meanCtrls").hidden = !m.isM;
+    $("propCtrls").hidden = m.isM;
+
+    $("alphaNum").value = state.alpha.toFixed(3); $("alphaRange").value = state.alpha;
+    $("mu0Num").value = state.mu0; $("mu0Range").value = clamp(state.mu0, 20, 80);
+    $("muaNum").value = state.mua; $("muaRange").value = clamp(state.mua, 20, 80);
+    $("sdNum").value = state.sd; $("sdRange").value = clamp(state.sd, 2, 30);
+    $("p0Num").value = state.p0.toFixed(2); $("p0Range").value = state.p0;
+    $("paNum").value = state.pa.toFixed(2); $("paRange").value = state.pa;
+    $("nNum").value = state.n; $("nRange").value = clamp(state.n, 5, 250);
+
+    document.querySelectorAll("#aPresets button").forEach(function(b){ b.classList.toggle("active", Math.abs(parseFloat(b.dataset.a)-state.alpha)<1e-6); });
+    document.querySelectorAll("#nPresets button").forEach(function(b){ b.classList.toggle("active", parseInt(b.dataset.n,10)===state.n); });
+
+    $("stAlpha").textContent = (state.alpha * 100).toFixed(1) + "%";
+    $("stBeta").textContent = (m.beta * 100).toFixed(1) + "%";
+    $("stPower").textContent = (m.power * 100).toFixed(1) + "%";
+    $("stEff").textContent = Math.abs(m.mua - m.mu0).toFixed(m.isM ? 1 : 2);
+    $("stSE").textContent = "SE₀ = " + m.se0.toFixed(dec);
+    $("stCrit").textContent = state.tail === "two"
+      ? ("[" + m.cL.toFixed(dec) + ", " + m.cR.toFixed(dec) + "]")
+      : ("Cutoff: " + (m.cR !== null ? m.cR : m.cL).toFixed(dec));
+
+    if(!state.sim){
+      $("simRes").textContent = "";
+    } else if(state.sim.truth === "H0"){
+      $("simRes").innerHTML = (state.lang==="zh" ? "H₀ 为真模拟拒绝率：" : "Sim Type I rate under H₀: ") +
+        "<b>" + (state.sim.rej / state.sim.n * 100).toFixed(1) + "%</b> (" + state.sim.rej + "/" + state.sim.n + " vs α=" + (state.alpha*100).toFixed(1) + "%)";
+    } else {
+      var empPow = state.sim.rej / state.sim.n;
+      $("simRes").innerHTML = (state.lang==="zh" ? "Hₐ 为真模拟 Power：" : "Sim Power under Hₐ: ") +
+        "<b>" + (empPow * 100).toFixed(1) + "%</b> (β = " + ((1-empPow)*100).toFixed(1) + "% vs " + (m.power*100).toFixed(1) + "%)";
+    }
+
+    $("cheatList").innerHTML = state.lang === "zh"
+      ? "<li><b>样本量 n ↑</b> → SE 缩小 → <b>β ↓ 且 Power ↑</b>（α 不变，双赢！）</li>" +
+        "<li><b>显著性 α ↑</b> → 拒绝域变宽 → <b>β ↓ 且 Power ↑</b>（但犯 Type I 错误风险上升）</li>" +
+        "<li><b>效应量 |μₐ − μ₀| ↑</b> → 两曲线分得更开 → <b>β ↓ 且 Power ↑</b></li>" +
+        "<li><b>Power = 1 − β</b>，二者永远互补</li>"
+      : "<li><b>Sample size n ↑</b> → smaller SE → <b>β ↓ and Power ↑</b> (α unchanged)</li>" +
+        "<li><b>Significance α ↑</b> → wider rejection region → <b>β ↓ and Power ↑</b> (higher Type I risk)</li>" +
+        "<li><b>Effect size |μₐ − μ₀| ↑</b> → less overlap → <b>β ↓ and Power ↑</b></li>" +
+        "<li><b>Power = 1 − β</b> always sum to 1 under Hₐ</li>";
+  }
+
+  function drawChart(){
+    var cv = $("chart"), wrap = cv.parentElement;
+    var W = wrap.clientWidth, H = cv.clientHeight || 330, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+    var ctx = cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+
+    var m = model();
+    var lo = Math.min(m.mu0 - 4 * m.se0, m.mua - 4 * m.sea);
+    var hi = Math.max(m.mu0 + 4 * m.se0, m.mua + 4 * m.sea);
+    var peak = Math.max(normalPDF(m.mu0, m.mu0, m.se0), normalPDF(m.mua, m.mua, m.sea));
+    var yMax = peak * 1.18;
+
+    var padL = 24, padR = 24, padT = 22, padB = 34, cw = W - padL - padR, ch = H - padT - padB;
+    function X(v){ return padL + (v - lo) / (hi - lo) * cw; }
+    function Y(d){ return padT + ch - (d / yMax) * ch; }
+
+    var navy = cssVar("--navy"), sage = cssVar("--sage"), gold = cssVar("--gold"),
+        danger = cssVar("--danger"), muted = cssVar("--ink-3"), line = cssVar("--line");
+
+    function fillInterval(a, b, mu, se, col, alpha){
+      if(b <= a) return;
+      ctx.fillStyle = col; ctx.globalAlpha = alpha;
+      ctx.beginPath(); ctx.moveTo(X(a), Y(0));
+      for(var i=0;i<=90;i++){
+        var xv = a + (b - a) * i / 90;
+        ctx.lineTo(X(xv), Y(normalPDF(xv, mu, se)));
+      }
+      ctx.lineTo(X(b), Y(0)); ctx.closePath(); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    // 1. Shading regions
+    if($("chkP").checked){
+      if(m.cR !== null) fillInterval(Math.max(lo, m.cR), hi, m.mua, m.sea, sage, 0.25);
+      if(m.cL !== null) fillInterval(lo, Math.min(hi, m.cL), m.mua, m.sea, sage, 0.25);
+    }
+    if($("chkB").checked){
+      var nrL = m.cL !== null ? Math.max(lo, m.cL) : lo;
+      var nrR = m.cR !== null ? Math.min(hi, m.cR) : hi;
+      fillInterval(nrL, nrR, m.mua, m.sea, gold, 0.26);
+    }
+    if($("chkA").checked){
+      if(m.cR !== null) fillInterval(Math.max(lo, m.cR), hi, m.mu0, m.se0, danger, 0.30);
+      if(m.cL !== null) fillInterval(lo, Math.min(hi, m.cL), m.mu0, m.se0, danger, 0.30);
+    }
+
+    // 2. Curves
+    function strokeCurve(mu, se, col, dashed){
+      ctx.strokeStyle = col; ctx.lineWidth = 2.4;
+      if(dashed) ctx.setLineDash([6,4]); else ctx.setLineDash([]);
+      ctx.beginPath();
+      for(var i=0;i<=180;i++){
+        var xv = lo + (hi - lo) * i / 180, py = Y(normalPDF(xv, mu, se));
+        if(i===0) ctx.moveTo(X(xv), py); else ctx.lineTo(X(xv), py);
+      }
+      ctx.stroke(); ctx.setLineDash([]);
+    }
+    strokeCurve(m.mu0, m.se0, navy, false);
+    strokeCurve(m.mua, m.sea, sage, true);
+
+    // Labels on peaks
+    ctx.font = "700 12px ui-monospace, Menlo, monospace"; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+    ctx.fillStyle = navy; ctx.fillText("H₀", X(m.mu0), Y(normalPDF(m.mu0, m.mu0, m.se0)) - 4);
+    ctx.fillStyle = sage; ctx.fillText("Hₐ", X(m.mua), Y(normalPDF(m.mua, m.mua, m.sea)) - 4);
+
+    // 3. Rejection boundaries
+    var dec = m.isM ? 2 : 3;
+    [m.cL, m.cR].forEach(function(cut){
+      if(cut === null || cut < lo || cut > hi) return;
+      ctx.strokeStyle = danger; ctx.lineWidth = 1.8; ctx.setLineDash([4,3]);
+      ctx.beginPath(); ctx.moveTo(X(cut), padT); ctx.lineTo(X(cut), Y(0)); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = danger; ctx.font = "700 11px ui-monospace, Menlo, monospace"; ctx.textBaseline = "top";
+      ctx.fillText(cut.toFixed(dec), X(cut), padT - 12);
+    });
+
+    // 4. Axis
+    ctx.strokeStyle = muted; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, Y(0)); ctx.lineTo(W - padR, Y(0)); ctx.stroke();
+    ctx.fillStyle = muted; ctx.font = "11px ui-monospace, Menlo, monospace"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+    for(var tk=0;tk<=5;tk++){
+      var tv = lo + (hi - lo) * tk / 5;
+      ctx.fillText(tv.toFixed(m.isM ? 1 : 2), X(tv), Y(0) + 7);
+    }
+  }
+
+  function runSim(truth){
+    var m = model(), rej = 0, K = 1000;
+    var muT = truth === "H0" ? m.mu0 : m.mua;
+    var seT = truth === "H0" ? m.se0 : m.sea;
+    for(var i=0;i<K;i++){
+      var stat = m.isM ? (muT + seT * randn()) : (function(){
+        var x = 0; for(var j=0;j<state.n;j++) if(Math.random() < muT) x++;
+        return x / state.n;
+      })();
+      var r = (m.cR !== null && stat > m.cR) || (m.cL !== null && stat < m.cL);
+      if(r) rej++;
+    }
+    state.sim = { truth:truth, rej:rej, n:K };
+    updateUI();
+  }
+
+  function syncAll(){ updateUI(); drawChart(); }
+  function applyLang(){
+    document.documentElement.lang = state.lang === "zh" ? "zh-CN" : "en";
+    $("langZh").setAttribute("aria-pressed", String(state.lang==="zh"));
+    $("langEn").setAttribute("aria-pressed", String(state.lang==="en"));
+    document.querySelectorAll("[data-i18n]").forEach(function(el){ el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll("[data-i18n-html]").forEach(function(el){ el.innerHTML = t(el.dataset.i18nHtml); });
+    syncAll();
+  }
+
+  // Bind listeners strictly once
+  document.querySelectorAll("[data-mode]").forEach(function(b){
+    b.addEventListener("click", function(){
+      state.mode = this.dataset.mode; state.sim = null;
+      if(state.mode === "prop" && state.n < 50) state.n = 100;
+      if(state.mode === "mean" && state.n === 100) state.n = 25;
+      document.querySelectorAll("[data-mode]").forEach(function(x){ x.setAttribute("aria-pressed", String(x===b)); });
+      syncAll();
+    });
+  });
+  document.querySelectorAll("[data-tail]").forEach(function(b){
+    b.addEventListener("click", function(){
+      state.tail = this.dataset.tail; state.sim = null;
+      if(state.tail === "lt" && ((state.mode==="mean" && state.mua>state.mu0) || (state.mode==="prop" && state.pa>state.p0))){
+        state.mua = state.mu0 - 5; state.pa = Math.max(0.10, state.p0 - 0.12);
+      }
+      if(state.tail === "gt" && ((state.mode==="mean" && state.mua<state.mu0) || (state.mode==="prop" && state.pa<state.p0))){
+        state.mua = state.mu0 + 5; state.pa = Math.min(0.90, state.p0 + 0.12);
+      }
+      document.querySelectorAll("[data-tail]").forEach(function(x){ x.setAttribute("aria-pressed", String(x===b)); });
+      syncAll();
+    });
+  });
+
+  function bindRN(rId, nId, key, lo, hi, isInt){
+    $(rId).addEventListener("input", function(){ state[key] = isInt?parseInt(this.value,10):parseFloat(this.value); state.sim=null; syncAll(); });
+    $(nId).addEventListener("change", function(){
+      var v = parseFloat(this.value);
+      state[key] = isNaN(v) ? state[key] : clamp(isInt?Math.round(v):v, lo, hi);
+      state.sim = null; syncAll();
+    });
+  }
+  bindRN("alphaRange","alphaNum","alpha",0.005,0.20,false);
+  bindRN("mu0Range","mu0Num","mu0",10,90,false);
+  bindRN("muaRange","muaNum","mua",10,90,false);
+  bindRN("sdRange","sdNum","sd",2,40,false);
+  bindRN("p0Range","p0Num","p0",0.10,0.90,false);
+  bindRN("paRange","paNum","pa",0.10,0.90,false);
+  bindRN("nRange","nNum","n",5,1000,true);
+
+  document.querySelectorAll("#aPresets button").forEach(function(b){ b.addEventListener("click", function(){ state.alpha=parseFloat(this.dataset.a); state.sim=null; syncAll(); }); });
+  document.querySelectorAll("#nPresets button").forEach(function(b){ b.addEventListener("click", function(){ state.n=parseInt(this.dataset.n,10); state.sim=null; syncAll(); }); });
+  ["chkA","chkB","chkP"].forEach(function(id){ $(id).addEventListener("change", drawChart); });
+
+  $("simH0").addEventListener("click", function(){ runSim("H0"); });
+  $("simHa").addEventListener("click", function(){ runSim("Ha"); });
+  $("simClr").addEventListener("click", function(){ state.sim = null; updateUI(); });
+
+  document.querySelectorAll("[data-pre]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var p = this.dataset.pre; state.sim = null;
+      if(p==="bigN"){ state.n = state.mode==="mean" ? 100 : 250; }
+      if(p==="highA"){ state.alpha = state.alpha < 0.05 ? 0.10 : (state.alpha === 0.10 ? 0.01 : 0.10); }
+      if(p==="bigEff"){ if(state.mode==="mean") state.mua = state.mu0 + (state.tail==="lt"?-8:8); else state.pa = clamp(state.p0 + (state.tail==="lt"?-0.16:0.16),0.10,0.90); }
+      if(p==="lowPow"){ state.alpha = 0.05; state.n = state.mode==="mean" ? 16 : 40; if(state.mode==="mean") state.mua = state.mu0 + (state.tail==="lt"?-3:3); else state.pa = clamp(state.p0 + (state.tail==="lt"?-0.06:0.06),0.10,0.90); }
+      syncAll();
+    });
+  });
+
+  $("langZh").addEventListener("click", function(){ state.lang = "zh"; try{localStorage.setItem("mg-sampling-lang","zh");}catch(e){} applyLang(); });
+  $("langEn").addEventListener("click", function(){ state.lang = "en"; try{localStorage.setItem("mg-sampling-lang","en");}catch(e){} applyLang(); });
+
+  var resizeT = null;
+  window.addEventListener("resize", function(){ clearTimeout(resizeT); resizeT = setTimeout(drawChart, 100); });
+  if(window.matchMedia){
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    if(mq.addEventListener) mq.addEventListener("change", drawChart);
+  }
+
+  try { var saved = localStorage.getItem("mg-sampling-lang"); if(saved === "en" || saved === "zh") state.lang = saved; } catch(e){}
+  applyLang();
+})();
+</script>
+</body>
+</html>

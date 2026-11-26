@@ -36,7 +36,7 @@
       <p class="hero-sub">Interactive Math &amp; Statistics Visualizations — 拖动、调参、直观看懂几何与抽样分布</p>
     </div>
     <div class="hero-stat">
-      <strong id="total-count">5</strong>
+      <strong id="total-count">9</strong>
       <span>个互动可视化</span>
     </div>
   </section>
@@ -44,9 +44,10 @@
   <section class="toolbar" aria-label="筛选与搜索互动模块">
     <div class="toolbar-row">
       <div class="filter-pills" role="group" aria-label="按学科分类筛选">
-        <button type="button" class="filter-pill" data-filter="all" aria-pressed="true">全部 <span class="pill-n" id="count-all">5</span></button>
+        <button type="button" class="filter-pill" data-filter="all" aria-pressed="true">全部 <span class="pill-n" id="count-all">9</span></button>
         <button type="button" class="filter-pill" data-filter="geometry" aria-pressed="false">几何 Geometry <span class="pill-n" id="count-geometry">1</span></button>
         <button type="button" class="filter-pill" data-filter="sampling" aria-pressed="false">抽样分布 Sampling <span class="pill-n" id="count-sampling">4</span></button>
+        <button type="button" class="filter-pill" data-filter="inference" aria-pressed="false">统计推断 Inference <span class="pill-n" id="count-inference">4</span></button>
       </div>
       <div class="search-box">
         <svg class="search-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -93,7 +94,8 @@
 
   const GROUPS = [
     { key: 'geometry', title: '几何 · Geometry', sub: '直观几何推导与动态图形变换' },
-    { key: 'sampling', title: '统计 · 抽样分布模拟器', sub: '样本比例、样本均值与双样本差值抽样实验' }
+    { key: 'sampling', title: '统计 · 抽样分布模拟器', sub: '样本比例、样本均值与双样本差值抽样实验' },
+    { key: 'inference', title: '统计 · 统计推断实验室', sub: '置信区间捕获率、两类错误与功效、t 分布及卡方列联表检验' }
   ];
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
@@ -104,6 +106,7 @@
   document.getElementById('count-all').textContent = tools.length;
   document.getElementById('count-geometry').textContent = tools.filter(t => t.category === 'geometry').length;
   document.getElementById('count-sampling').textContent = tools.filter(t => t.category === 'sampling').length;
+  document.getElementById('count-inference').textContent = tools.filter(t => t.category === 'inference').length;
 
   root.innerHTML = GROUPS.map(group => {
     const items = tools.filter(t => t.category === group.key);

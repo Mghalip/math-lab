@@ -118,5 +118,85 @@ window.MG_MATH_TOOLS = [
       <circle cx="181" cy="28" r="4" fill="#C86D44"/>
       <line x1="81" y1="28" x2="175" y2="28" stroke="#B8862D" stroke-width="2" stroke-dasharray="4 3"/>
     </svg>`
+  },
+  {
+    id: 'inference-ci',
+    category: 'inference',
+    categoryLabel: '统计 · 统计推断',
+    symbol: 'CI',
+    titleZh: '置信区间捕获率模拟器',
+    titleEn: 'Confidence Interval Capture Simulator',
+    desc: '批量构建比例 z 区间与均值 t / z 区间，直观对比捕获真值的绿色区间与未捕获的红色区间，理解长期置信水平。',
+    tags: ['AP Statistics', 'Unit 3 / 4', '置信区间'],
+    path: 'tools/inference/confidence-interval.html',
+    svg: `<svg viewBox="0 0 260 112" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <line x1="130" y1="12" x2="130" y2="100" stroke="#172A48" stroke-width="2"/>
+      <line x1="88" y1="26" x2="162" y2="26" stroke="#1D6B53" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="125" cy="26" r="3.5" fill="#1D6B53"/>
+      <line x1="102" y1="44" x2="176" y2="44" stroke="#1D6B53" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="139" cy="44" r="3.5" fill="#1D6B53"/>
+      <line x1="142" y1="62" x2="214" y2="62" stroke="#B4342F" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="178" cy="62" r="3.5" fill="#B4342F"/>
+      <line x1="80" y1="80" x2="152" y2="80" stroke="#1D6B53" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="116" cy="80" r="3.5" fill="#1D6B53"/>
+    </svg>`
+  },
+  {
+    id: 'inference-power',
+    category: 'inference',
+    categoryLabel: '统计 · 统计推断',
+    symbol: 'α · β',
+    titleZh: '两类错误与检验功效实验室',
+    titleEn: 'Type I / Type II Error & Power Lab',
+    desc: '同轴叠画 H₀ 与 Hₐ 分布曲线，三色高亮 α、β 与 Power (1−β)，拖动 α、样本量 n 与效应量实时观察权衡关系。',
+    tags: ['AP Statistics', 'Unit 3 / 4', 'Power & Errors'],
+    path: 'tools/inference/errors-power.html',
+    svg: `<svg viewBox="0 0 260 112" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <line x1="20" y1="92" x2="240" y2="92" stroke="#172A48" stroke-width="1.4" stroke-opacity="0.35"/>
+      <path d="M 28 90 C 58 89, 76 26, 98 26 S 138 89, 168 90" stroke="#172A48" stroke-width="2.2" fill="#FDECEB" fill-opacity="0.4"/>
+      <path d="M 96 90 C 126 89, 144 26, 166 26 S 206 89, 236 90" stroke="#1D6B53" stroke-width="2.2" stroke-dasharray="4 3" fill="#E4F3EC" fill-opacity="0.6"/>
+      <line x1="134" y1="16" x2="134" y2="94" stroke="#B4342F" stroke-width="2" stroke-dasharray="4 3"/>
+    </svg>`
+  },
+  {
+    id: 'inference-t-vs-z',
+    category: 'inference',
+    categoryLabel: '统计 · 统计推断',
+    symbol: 't vs z',
+    titleZh: 't 分布与标准正态 z 对比',
+    titleEn: 't-Distribution vs. Standard Normal (z)',
+    desc: '调节自由度 df = n − 1 对比 t 分布厚尾与 N(0,1) 差异，并实时抽样比较 (x̄−μ)/(s/√n) 与 (x̄−μ)/(σ/√n)。',
+    tags: ['AP Statistics', 'Unit 4', 't 分布'],
+    path: 'tools/inference/t-vs-z.html',
+    svg: `<svg viewBox="0 0 260 112" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <line x1="24" y1="92" x2="236" y2="92" stroke="#172A48" stroke-width="1.4" stroke-opacity="0.35"/>
+      <path d="M 32 90 C 78 88, 102 18, 130 18 S 182 88, 228 90" stroke="#172A48" stroke-width="2" stroke-dasharray="4 3" fill="none"/>
+      <path d="M 24 88 C 72 82, 98 30, 130 30 S 188 82, 236 88" stroke="#1D6B53" stroke-width="2.5" fill="none"/>
+      <line x1="78" y1="28" x2="78" y2="92" stroke="#C86D44" stroke-width="1.6"/>
+      <line x1="182" y1="28" x2="182" y2="92" stroke="#C86D44" stroke-width="1.6"/>
+    </svg>`
+  },
+  {
+    id: 'inference-chi2',
+    category: 'inference',
+    categoryLabel: '统计 · 统计推断',
+    symbol: 'χ²',
+    titleZh: '卡方列联表检验模拟器',
+    titleEn: 'Chi-Square Two-Way Table Simulator',
+    desc: '自由编辑列联表计算期望频数 E 与 χ² 贡献，在 H₀ 下固定边际和反复洗牌重抽，直观对比模拟 p-value 与理论 χ² 曲线。',
+    tags: ['AP Statistics', 'Unit 3.14–3.15', '卡方检验'],
+    path: 'tools/inference/chi-square.html',
+    svg: `<svg viewBox="0 0 260 112" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <line x1="24" y1="92" x2="236" y2="92" stroke="#172A48" stroke-width="1.4" stroke-opacity="0.35"/>
+      <rect x="44" y="42" width="16" height="50" rx="2" fill="#1D6B53" fill-opacity="0.55"/>
+      <rect x="64" y="28" width="16" height="64" rx="2" fill="#1D6B53" fill-opacity="0.72"/>
+      <rect x="84" y="40" width="16" height="52" rx="2" fill="#1D6B53" fill-opacity="0.55"/>
+      <rect x="104" y="58" width="16" height="34" rx="2" fill="#1D6B53" fill-opacity="0.4"/>
+      <rect x="124" y="72" width="16" height="20" rx="2" fill="#1D6B53" fill-opacity="0.3"/>
+      <rect x="144" y="80" width="16" height="12" rx="2" fill="#C86D44" fill-opacity="0.75"/>
+      <rect x="164" y="85" width="16" height="7" rx="2" fill="#C86D44" fill-opacity="0.85"/>
+      <path d="M 32 90 C 48 24, 68 24, 108 58 C 142 84, 184 89, 228 90" stroke="#172A48" stroke-width="2.2" fill="none"/>
+      <line x1="142" y1="22" x2="142" y2="94" stroke="#C86D44" stroke-width="1.8" stroke-dasharray="4 3"/>
+    </svg>`
   }
 ];

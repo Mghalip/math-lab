@@ -524,6 +524,10 @@ main {
   background: linear-gradient(135deg, #EEF6F2 0%, #E3EFE9 100%);
 }
 
+.tool-card.cat-inference .tool-thumb {
+  background: linear-gradient(135deg, #EEF2F8 0%, #E4EBF4 100%);
+}
+
 .tool-thumb svg {
   width: 100%;
   max-width: 260px;
@@ -551,6 +555,11 @@ main {
 .cat-sampling .thumb-badge {
   color: var(--sage);
   border-color: #BCE0D2;
+}
+
+.cat-inference .thumb-badge {
+  color: var(--navy);
+  border-color: #C3D1E4;
 }
 
 .thumb-symbol {
