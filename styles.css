@@ -111,7 +111,7 @@ button, input, select {
 
 .header-inner {
   width: 100%;
-  max-width: 1120px;
+  max-width: 1360px;
   margin: 0 auto;
   padding: 12px 28px;
   display: flex;
@@ -207,7 +207,7 @@ button, input, select {
 /* ---------- Main Container ---------- */
 main {
   width: 100%;
-  max-width: 1120px;
+  max-width: 1360px;
   margin: 0 auto;
   padding: 24px 28px 64px;
   flex: 1;
@@ -484,8 +484,8 @@ main {
 
 .tools-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
 }
 
 .tool-card {
@@ -706,7 +706,7 @@ main {
 
 .site-footer {
   width: 100%;
-  max-width: 1120px;
+  max-width: 1360px;
   margin: 0 auto;
   padding: 24px 28px 36px;
   border-top: 1px solid var(--line);
@@ -903,7 +903,13 @@ body.viewer-page {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 1020px) {
+  .tools-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
   .tools-grid {
     grid-template-columns: 1fr;
   }
