@@ -5,481 +5,876 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="data:,">
-<title>Sample Mean Simulator — 样本均值的抽样分布</title>
+<title>样本均值的抽样分布模拟器 · Sampling Distribution of x̄</title>
+<script>
+try { if (window.self !== window.top) document.documentElement.classList.add('in-embed'); }
+catch (e) { document.documentElement.classList.add('in-embed'); }
+</script>
 <style>
 :root{
-  --bg:#f7f5f1; --surface:#ffffff; --surface2:#f0ede7; --ink:#172033; --muted:#6b7280; --line:#e3ded3;
-  --navy:#1b365d; --navy2:#243a5e; --teal:#0e7569; --teal-light:#e6f2f0; --amber:#b7791f; --amber-light:#fdf3d7;
-  --pop:#3b5b8a; --samp:#0e7569; --danger:#b42318; --radius:16px;
+  --ground:#F5F2EA; --surface:#FFFDF8; --surface-2:#FAF7F0; --line:#E6E0D3; --line-soft:#EFEADF;
+  --navy:#172A48; --navy-2:#223B63; --navy-soft:#E9EEF5;
+  --ink:#16203A; --ink-2:#4B556B; --ink-3:#737B8E;
+  --sage:#1D6B53; --sage-soft:#E4F3EC;
+  --accent:#C86D44; --accent-soft:#FBECE4;
+  --gold:#B8862D; --gold-soft:#FBF1DB; --gold-bright:#E8B04A;
+  --danger:#B4342F; --danger-soft:#FDECEB;
+  --serif:"Iowan Old Style","Palatino Linotype","Charter",Georgia,"Songti SC","STSong",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  --shadow-sm:0 1px 2px rgba(23,42,72,.04),0 4px 12px -6px rgba(23,42,72,.08);
+  --r-md:14px; --r-sm:9px;
 }
-@media (prefers-color-scheme: dark){
-  :root{ --bg:#12151a; --surface:#1a1e26; --surface2:#222731; --ink:#eef1f5; --muted:#9aa3af; --line:#2e3440; --navy:#8fb0e0; --teal:#2dd4bf; --teal-light:#12312e; --amber-light:#2e2612; --pop:#7aa2d6; --samp:#2dd4bf; }
+@media (prefers-color-scheme:dark){
+  :root{
+    --ground:#11161F; --surface:#19202C; --surface-2:#222B3A; --line:#303B4F; --line-soft:#263042;
+    --navy:#8FB0E0; --navy-2:#A6C2EB; --navy-soft:#1F2D44;
+    --ink:#EDF1F7; --ink-2:#B4BECE; --ink-3:#8692A6;
+    --sage:#38C6A8; --sage-soft:#14332C;
+    --accent:#EA8E63; --accent-soft:#3B241A;
+    --gold:#E8B04A; --gold-soft:#382C13; --gold-bright:#F2C46D;
+    --danger:#F87171; --danger-soft:#3B1C1E;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.35),0 6px 16px -6px rgba(0,0,0,.45);
+  }
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
-a{color:var(--navy)}
-.wrap{max-width:1080px;margin:0 auto;padding:20px 18px 40px}
-h1{font-size:28px;line-height:1.15;letter-spacing:-.02em;margin:6px 0 6px;font-weight:800}
-h1 span{font-weight:600;color:var(--muted);font-size:20px}
-.lede{color:var(--muted);font-size:15.5px;max-width:720px;margin:0 0 18px}
-.lede strong{color:var(--ink)}
-.formula{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 18px;align-items:center}
-.chip{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:2px;line-height:1.2}
-.chip b{color:var(--teal);display:inline-flex;align-items:center;gap:2px}
-.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .14em;line-height:1.05;font-style:normal}
-.frac>span{display:block;padding:0 .36em;text-align:center;white-space:nowrap}
-.frac .num{padding-bottom:.13em}
-.frac .den{border-top:1.6px solid currentColor;padding-top:.13em}
-.frac-sm{font-size:.86em;margin:0 .1em}
-.frac-sm>span{padding-left:.28em;padding-right:.28em}
-.frac-sm .num{padding-bottom:.1em}
-.frac-sm .den{border-top-width:1.3px;padding-top:.1em}
-.eq{display:inline-flex;align-items:center;gap:.28em;white-space:nowrap}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
-.card h2{font-size:16px;margin:0 0 4px;letter-spacing:-.01em}
-.card h2 .en{color:var(--muted);font-weight:600;font-size:13px;margin-left:6px}
-.card p.sub{margin:0 0 12px;color:var(--muted);font-size:13.5px}
-.controls{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;margin-bottom:16px}
-@media(max-width:760px){.controls{grid-template-columns:1fr} h1{font-size:24px} h1 span{display:block;margin-top:4px}}
-.label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:8px}
-.pills{display:flex;flex-wrap:wrap;gap:8px}
-.pill{appearance:none;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 14px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer;min-height:44px}
-.pill[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
-@media(prefers-color-scheme:dark){.pill[aria-pressed="true"]{background:#2f4d7a;color:#fff}}
-.pill small{display:block;font-weight:500;font-size:11.5px;opacity:.75}
-.n-control{display:flex;align-items:center;gap:14px}
-.n-value{font-size:42px;font-weight:800;line-height:1;min-width:64px;text-align:center}
-.n-value small{font-size:14px;color:var(--muted);font-weight:600;display:block;letter-spacing:.06em}
-.keep-case{text-transform:none !important}
-input[type=range]{flex:1;accent-color:var(--teal);height:44px}
-.n-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.n-presets button{border:1px solid var(--line);background:var(--surface2);border-radius:999px;padding:6px 12px;font-weight:700;cursor:pointer;min-height:36px;font-size:13px}
-.n-presets button.active{background:var(--teal);color:#fff;border-color:var(--teal)}
-.pop-stats{display:flex;gap:16px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);flex-wrap:wrap}
-.pop-stats div{font-size:13.5px;color:var(--muted)} .pop-stats b{display:block;font-size:18px;color:var(--ink)}
-.drawbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0}
-.btn{appearance:none;border:none;cursor:pointer;border-radius:12px;padding:12px 18px;font-size:15px;font-weight:700;min-height:48px}
-.btn-primary{background:var(--teal);color:#fff}
-.btn-secondary{background:var(--surface);border:1.5px solid var(--line);color:var(--ink)}
-.btn-ghost{background:transparent;border:1.5px solid var(--line);color:var(--muted)}
-.btn:active{transform:scale(.98)}
-.drawbar .count{margin-left:auto;font-size:13.5px;color:var(--muted)} .drawbar .count b{color:var(--ink);font-size:16px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media(max-width:860px){.grid2{grid-template-columns:1fr}}
-svg.chart{width:100%;height:auto;display:block}
-.axis{font-size:11px;fill:var(--muted)} .gridline{stroke:var(--line);stroke-width:1}
-.legend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--muted);margin-top:8px}
-.legend span{display:inline-flex;align-items:center}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}
-@media(max-width:860px){.stats{grid-template-columns:1fr 1fr}}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
-.stat .k{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.04em;text-transform:uppercase;display:flex;align-items:center;gap:4px;flex-wrap:wrap;min-height:28px}
-.stat .d{display:flex;align-items:center;gap:3px;flex-wrap:wrap}
-.stat .v{font-size:26px;font-weight:800;line-height:1.1;margin:4px 0 2px}
-.stat .d{font-size:13px;color:var(--muted)} .stat .d b{color:var(--teal)}
-.stat.highlight{border-color:var(--teal);background:var(--teal-light)}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--line)} th{color:var(--muted);font-size:12.5px;letter-spacing:.03em}
-td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
-.insight{background:var(--amber-light);border:1px solid #e8d9a8;border-radius:14px;padding:16px 18px;font-size:14.5px}
-@media(prefers-color-scheme:dark){.insight{border-color:#4a3f1e}}
-.insight h3{margin:0 0 6px;font-size:15px} .insight p{margin:0}
-.last-sample{margin-top:16px}
-.dots{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0}
-.dot{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:4px 8px;font-size:13px;font-variant-numeric:tabular-nums;font-weight:600}
-.dot.mean-dot{background:var(--teal);color:#fff;border-color:var(--teal)}
-.empty{border:1.5px dashed var(--line);border-radius:12px;padding:22px;text-align:center;color:var(--muted);font-size:14px}
-.checks{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.checks label{display:flex;align-items:center;gap:8px;background:var(--surface2);border-radius:999px;padding:8px 13px;font-size:13.5px;font-weight:600;cursor:pointer;min-height:40px}
-.checks input{width:18px;height:18px;accent-color:var(--teal)}
-details{margin-top:16px} summary{cursor:pointer;font-weight:700;padding:10px 0;min-height:44px}
-.recent{font-size:13px;color:var(--muted);word-break:break-all;line-height:1.9}
-footer{margin-top:22px;color:var(--muted);font-size:13px;text-align:center;display:flex;justify-content:center;align-items:center;gap:4px;flex-wrap:wrap}
-.kbd{background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:12px}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ground);color:var(--ink);font:400 15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button,input[type=number],select{min-height:40px}
+:focus-visible{outline:2.5px solid var(--gold);outline-offset:2px;border-radius:var(--r-sm)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+.sim-nav{background:var(--surface);border-bottom:1px solid var(--line);padding:8px 18px}
+.sim-nav-inner{max-width:1160px;margin:0 auto;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sim-nav a,.sim-nav strong{padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap}
+.sim-nav a{color:var(--ink-2);border:1px solid transparent}
+.sim-nav a:hover{background:var(--surface-2);border-color:var(--line);color:var(--ink)}
+.sim-nav strong{background:#172A48;color:#fff;border:1px solid #172A48}
+@media(prefers-color-scheme:dark){.sim-nav strong{background:var(--sage);color:#0E161B;border-color:var(--sage)}}
+.in-embed .sim-nav{display:none}
+
+.wrap{max-width:1160px;margin:0 auto;padding:18px 18px 40px}
+header.top{padding-bottom:16px;border-bottom:2px solid var(--line);margin-bottom:18px}
+.head-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.kicker{font:700 11.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin:0 0 6px}
+h1{font:700 clamp(24px,4vw,36px)/1.12 var(--serif);margin:0;letter-spacing:-.02em}
+h1 em{font-style:italic;color:var(--sage)}
+.sub{margin:8px 0 0;color:var(--ink-2);font-size:15px;max-width:740px}
+
+.lang-switch{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px;box-shadow:var(--shadow-sm);flex:none}
+.lang-switch button{min-height:30px;padding:0 12px;border:0;border-radius:999px;background:transparent;color:var(--ink-2);font-size:12.5px;font-weight:700;cursor:pointer}
+.lang-switch button[aria-pressed="true"]{background:#172A48;color:#fff}
+@media(prefers-color-scheme:dark){.lang-switch button[aria-pressed="true"]{background:var(--sage);color:#0E161B}}
+
+.formula{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:stretch}
+.chip{background:var(--surface);border:1px solid var(--line);padding:7px 13px;border-radius:11px;font-family:var(--serif);font-size:14px;display:inline-flex;align-items:center;gap:7px;line-height:1.25;box-shadow:var(--shadow-sm)}
+.chip b{color:var(--sage);font-weight:700}
+.chip .chip-label{font-family:var(--sans);font-size:12px;font-weight:700;color:var(--ink-3)}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.12;margin:0 2px;font-size:.92em}
+.frac-num{display:block;padding:0 5px 2px;border-bottom:1.5px solid currentColor;white-space:nowrap}
+.frac-den{display:block;padding:2px 5px 0;white-space:nowrap}
+.eq{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+
+.guide-box{margin-top:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:8px 14px;font-size:13.5px}
+.guide-box summary{cursor:pointer;font-weight:700;color:var(--navy);list-style:none;display:flex;align-items:center;gap:6px;min-height:28px}
+.guide-box summary::-webkit-details-marker{display:none}
+.guide-box summary::before{content:"▸";font-size:12px;transition:transform .15s ease}
+.guide-box[open] summary::before{transform:rotate(90deg)}
+.guide-box p{margin:8px 0 4px;color:var(--ink-2)}
+
+.controls-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}
+@media(max-width:860px){.controls-grid{grid-template-columns:1fr}}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:16px 18px;box-shadow:var(--shadow-sm)}
+.card h2{font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;margin:0 0 10px;color:var(--ink-3);font-weight:700}
+
+.pills{display:flex;flex-wrap:wrap;gap:7px}
+.pill{appearance:none;border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink);padding:7px 13px;border-radius:999px;font-size:13.5px;font-weight:700;cursor:pointer;min-height:42px;text-align:left}
+.pill small{display:block;font-weight:500;font-size:11px;color:var(--ink-3)}
+.pill[aria-pressed="true"]{background:#172A48;border-color:#172A48;color:#fff}
+.pill[aria-pressed="true"] small{color:rgba(255,255,255,.78)}
+@media(prefers-color-scheme:dark){.pill[aria-pressed="true"]{background:var(--sage);border-color:var(--sage);color:#0E161B}.pill[aria-pressed="true"] small{color:#0E161B}}
+
+.pop-meta{display:flex;flex-wrap:wrap;gap:18px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.pop-meta div{font-size:12.5px;color:var(--ink-3)}
+.pop-meta b{display:block;font:800 17px/1.2 var(--mono);color:var(--ink)}
+
+.n-row{display:flex;align-items:center;gap:12px}
+.num-input{width:84px;padding:4px 8px;text-align:right;font-family:var(--mono);font-weight:800;font-size:18px;color:var(--sage);background:var(--surface-2);border:1px solid var(--line);border-radius:9px;min-height:40px}
+input[type=range]{flex:1;accent-color:var(--sage);height:32px;cursor:pointer}
+.n-presets{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.n-presets button{min-height:30px;padding:0 9px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);font-size:12px;font-weight:700;color:var(--ink-2);cursor:pointer}
+.n-presets button.active{background:#172A48;color:#fff;border-color:#172A48}
+@media(prefers-color-scheme:dark){.n-presets button.active{background:var(--sage);color:#0E161B;border-color:var(--sage)}}
+
+.toggles{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}
+.toggles label{display:inline-flex;align-items:center;gap:7px;cursor:pointer}
+.toggles input{width:16px;height:16px;accent-color:var(--sage);cursor:pointer}
+
+.action-bar{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 15px;border-radius:10px;cursor:pointer;font-weight:700;font-size:13.5px;box-shadow:var(--shadow-sm)}
+.btn:hover{border-color:var(--navy)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--sage);color:#fff;border-color:var(--sage)}
+@media(prefers-color-scheme:dark){.btn.primary{color:#0E161B}}
+.btn.reset{color:var(--danger)}
+.btn:disabled{opacity:.45;cursor:default;transform:none}
+.spacer{flex:1}
+.rep-badge{font-size:13.5px;color:var(--ink-2)}
+.rep-badge b{font-family:var(--mono);font-size:16px;color:var(--ink)}
+
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media(max-width:860px){.charts-grid{grid-template-columns:1fr}}
+.chart-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.chart-head h2{margin:0}
+.legend{display:flex;gap:10px;font-size:12px;color:var(--ink-2);flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:4px}
+.swatch{display:inline-block;width:11px;height:11px;border-radius:3px}
+.swatch-line{display:inline-block;width:14px;height:0;border-top:2.5px solid var(--accent)}
+.swatch-dash{display:inline-block;width:14px;height:0;border-top:2px dashed var(--danger)}
+canvas{width:100%;height:260px;display:block}
+.empty-note{text-align:center;color:var(--ink-2);font-size:13px;padding:8px 10px;background:var(--surface-2);border:1px dashed var(--line);border-radius:10px;margin-top:6px}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+@media(max-width:700px){.stats{grid-template-columns:1fr 1fr}}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow-sm)}
+.stat .k{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+.stat .v{font-family:var(--mono);font-size:23px;font-weight:800;line-height:1.2;margin-top:3px}
+.stat .s{font-size:12px;color:var(--ink-2);margin-top:2px}
+.stat.highlight{border-color:var(--sage);background:var(--sage-soft)}
+.stat.highlight .v{color:var(--sage)}
+
+.prob-card{margin-top:14px}
+.prob-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.prob-input-wrap{display:flex;align-items:center;gap:8px}
+.prob-input-wrap label{font-size:13.5px;font-weight:700}
+.seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{min-height:32px;padding:0 12px;border:0;border-radius:999px;background:transparent;font-size:12.5px;font-weight:700;color:var(--ink-2);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.prob-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+@media(max-width:640px){.prob-grid{grid-template-columns:1fr}}
+.pbox{background:var(--surface-2);border:1px solid var(--line-soft);border-radius:10px;padding:10px 12px}
+.pbox .pk{font-size:11.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
+.pbox .pv{font:800 20px/1.25 var(--mono);margin-top:3px}
+.pbox .ps{font-size:12px;color:var(--ink-2);margin-top:2px}
+.prob-warn{margin-top:8px;font-size:12.5px;color:#784E12;background:var(--gold-soft);padding:6px 10px;border-radius:8px}
+@media(prefers-color-scheme:dark){.prob-warn{color:var(--gold-bright)}}
+
+.sub-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media(max-width:860px){.sub-grid{grid-template-columns:1fr}}
+
+table.check-tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+table.check-tbl th,table.check-tbl td{padding:7px 5px;border-bottom:1px solid var(--line-soft);text-align:right}
+table.check-tbl th:first-child,table.check-tbl td:first-child{text-align:left}
+table.check-tbl th{font-size:11.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
+table.check-tbl td.mono{font-family:var(--mono);font-weight:600}
+table.check-tbl tr:last-child td{border-bottom:none}
+
+.insight{background:var(--gold-soft);border:1px solid rgba(184,134,45,.32);border-radius:var(--r-md);padding:15px 18px}
+.insight h3{margin:0 0 6px;font-size:15px;color:var(--ink)}
+.insight p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.55}
+
+.dots{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}
+.dot{background:var(--surface-2);border:1px solid var(--line);border-radius:7px;padding:3px 8px;font:600 12.5px/1.3 var(--mono)}
+.dot.mean-dot{background:var(--sage);color:#fff;border-color:var(--sage)}
+@media(prefers-color-scheme:dark){.dot.mean-dot{color:#0E161B}}
+
+details.extra{margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:8px 14px}
+details.extra summary{cursor:pointer;font-weight:700;font-size:13.5px;color:var(--navy);min-height:28px;display:flex;align-items:center}
+.recent{font:12.5px/1.8 var(--mono);color:var(--ink-2);word-break:break-all;margin:6px 0}
+
+footer{margin-top:18px;font-size:12.5px;color:var(--ink-3);text-align:center}
+.kbd{font-family:var(--mono);font-size:11.5px;background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
 </style>
 </head>
-<body><nav aria-label="选择模拟器" style="display:flex;flex-wrap:wrap;gap:.4em 1em;padding:.65em 1em;font:14px/1.5 system-ui"><a href="proportion.html">样本比例的抽样分布</a><a href="proportion-difference.html">样本比例的差值的抽样分布</a><strong aria-current="page">样本均值的抽样分布</strong><a href="mean-difference.html">样本均值的差值的抽样分布</a></nav>
-<div class="wrap">
-  <h1>Sampling Distribution of <i>x̄</i> <span>样本均值的抽样分布模拟器</span></h1>
-  <p class="lede">从同一个总体里反复抽样，每次算一个样本均值 <strong>x̄</strong>。把成百上千个 x̄ 画在一起，就是 <strong>sampling distribution of the sample mean</strong>。亲手改总体形状和样本量 <strong>n</strong>，看中心极限定理怎么发生。</p>
-
-  <div class="formula">
-    <span class="chip">中心 &nbsp;<b>μ<sub>x̄</sub> = μ</b></span>
-    <span class="chip">标准误 &nbsp;<b><span class="eq">σ<sub>x̄</sub> = <span class="frac"><span class="num">σ</span><span class="den"><math><msqrt><mi>n</mi></msqrt></math></span></span></span></b></span>
-    <span class="chip">形状 &nbsp;<b>n 越大 → 越接近正态</b></span>
-    <span class="chip">条件 &nbsp;<b>n ≤ 10% · N</b>（独立性）</span>
+<body>
+<nav class="sim-nav" aria-label="选择模拟器">
+  <div class="sim-nav-inner">
+    <a href="proportion.html" data-i18n="nav_p">样本比例 p̂</a>
+    <a href="proportion-difference.html" data-i18n="nav_pd">两样本比例差 p̂₁ − p̂₂</a>
+    <strong aria-current="page" data-i18n="nav_m">样本均值 x̄</strong>
+    <a href="mean-difference.html" data-i18n="nav_md">两样本均值差 x̄₁ − x̄₂</a>
   </div>
+</nav>
 
-  <!-- CONTROLS -->
-  <div class="controls">
-    <section class="card" aria-label="选择总体">
-      <div class="label">1 · Population — 选择总体分布</div>
-      <div class="pills" id="popPills" role="group" aria-label="总体分布">
-        <button class="pill" data-pop="normal" aria-pressed="true">正态 Normal<small>钟形 · 对称</small></button>
-        <button class="pill" data-pop="uniform" aria-pressed="false">均匀 Uniform<small>平的 · 每个值等可能</small></button>
-        <button class="pill" data-pop="right" aria-pressed="false">右偏 Right-skewed<small>长尾在右</small></button>
-        <button class="pill" data-pop="left" aria-pressed="false">左偏 Left-skewed<small>长尾在左</small></button>
-        <button class="pill" data-pop="bimodal" aria-pressed="false">双峰 Bimodal<small>两个峰</small></button>
+<div class="wrap">
+  <header class="top">
+    <div class="head-row">
+      <div>
+        <p class="kicker">AP Statistics · Sampling Distribution · Central Limit Theorem</p>
+        <h1 data-i18n-html="h1">样本均值的抽样分布 <em>x̄</em></h1>
+        <p class="sub" data-i18n-html="sub">切换总体形状与样本量 <b>n</b>，反复抽取样本均值 <b>x̄</b>，直观见证中心极限定理（CLT）与标准误规律。</p>
       </div>
-      <div class="pop-stats">
-        <div>总体均值 μ<b id="popMu">50.0</b></div>
-        <div>总体标准差 σ<b id="popSigma">10.0</b></div>
-        <div>总体形状<b id="popShape">对称</b></div>
+      <div class="lang-switch" role="group" aria-label="Language toggle">
+        <button type="button" id="langZh" aria-pressed="true">中文</button>
+        <button type="button" id="langEn" aria-pressed="false">EN</button>
+      </div>
+    </div>
+
+    <div class="formula">
+      <span class="chip"><span class="chip-label" data-i18n="f_mean">中心</span><span class="eq">μ<sub>x̄</sub> = μ</span></span>
+      <span class="chip"><span class="chip-label" data-i18n="f_sd">标准误 (SE)</span><span class="eq">σ<sub>x̄</sub> = <span class="frac"><span class="frac-num">σ</span><span class="frac-den"><math><msqrt><mi>n</mi></msqrt></math></span></span></span></span>
+      <span class="chip"><span class="chip-label" data-i18n="f_shape">正态条件</span><span class="eq" data-i18n="f_shape_v">总体正态 或 n ≥ 30 (CLT)</span></span>
+      <span class="chip"><span class="chip-label" data-i18n="f_ind">独立性</span><span class="eq">n ≤ 10% · N</span></span>
+    </div>
+
+    <details class="guide-box">
+      <summary data-i18n="guide_title">课堂练习引导（Worksheet Guide）</summary>
+      <p data-i18n="guide_body">第 3 页 A：选「右偏」总体，依次用 n = 4、16、64，每次抽 1,000 次，记录模拟均值和模拟 SD。第 4 页 B：勾选「比较形状时固定 μ = 50、σ = 10」，切换不同总体比较抽样分布形态。</p>
+    </details>
+  </header>
+
+  <div class="controls-grid">
+    <section class="card" aria-label="选择总体">
+      <h2 data-i18n="sec_pop">1 · 选择总体分布</h2>
+      <div class="pills" id="popPills" role="group" aria-label="总体形状">
+        <button type="button" class="pill" data-pop="normal" aria-pressed="true"><span data-i18n="p_norm">正态 Normal</span><small data-i18n="p_norm_s">钟形 · 对称</small></button>
+        <button type="button" class="pill" data-pop="uniform"><span data-i18n="p_unif">均匀 Uniform</span><small data-i18n="p_unif_s">平坦 · 对称</small></button>
+        <button type="button" class="pill" data-pop="right"><span data-i18n="p_right">右偏 Right</span><small data-i18n="p_right_s">长尾在右</small></button>
+        <button type="button" class="pill" data-pop="left"><span data-i18n="p_left">左偏 Left</span><small data-i18n="p_left_s">长尾在左</small></button>
+        <button type="button" class="pill" data-pop="bimodal"><span data-i18n="p_bi">双峰 Bimodal</span><small data-i18n="p_bi_s">两个峰</small></button>
+      </div>
+      <div class="pop-meta">
+        <div><span data-i18n="pm_mu">总体均值 μ</span><b id="popMu">50.0</b></div>
+        <div><span data-i18n="pm_sd">总体标准差 σ</span><b id="popSigma">10.0</b></div>
+        <div><span data-i18n="pm_sh">总体形状</span><b id="popShape">对称</b></div>
       </div>
     </section>
 
     <section class="card" aria-label="样本量">
-      <div class="label">2 · Sample size — 每次抽多少个 (<span class="keep-case">n</span>)</div>
-      <div class="n-control">
-        <div class="n-value"><small><span class="keep-case">n</span> =</small><input id="nVal" type="number" aria-label="输入样本量 n（1–100）" min="1" max="100" step="1" value="10" style="width:4em;font:inherit"></div>
-        <input type="range" id="nSlider" min="1" max="100" step="1" value="10" aria-label="样本量 n">
+      <h2 data-i18n="sec_n">2 · 样本量 n 与视图选项</h2>
+      <div class="n-row">
+        <span class="mono" style="font-weight:700">n =</span>
+        <input type="number" class="num-input" id="nNum" min="1" max="200" step="1" value="10" aria-label="样本量 n">
+        <input type="range" id="nSlider" min="1" max="100" step="1" value="10" aria-label="样本量滑块">
       </div>
-      <p class="sub">可直接输入 1–100 的整数。第 3 页 A 选右偏总体，依次用 4、16、64，每次抽 1,000 次，记录模拟均值和模拟 SD。</p><div class="n-presets" id="nPresets"></div>
-      <p class="sub" style="margin-top:10px">改 n 会清空已收集的 x̄ —— 因为标准误 <span class="frac frac-sm"><span class="num">σ</span><span class="den"><math><msqrt><mi>n</mi></msqrt></math></span></span> 变了，要重新看一个新的抽样分布。</p>
-      <div class="checks"><label><input id="fixedMoments" type="checkbox"> 第 4 页 B · 比较形状时固定 μ = 50、σ = 10</label>
-        <label><input type="checkbox" id="showCurve" checked> 叠加理论正态曲线</label>
-        <label><input type="checkbox" id="showLast" checked> 显示最近一次样本</label>
+      <div class="n-presets" id="nPresets"></div>
+      <div class="toggles">
+        <label><input type="checkbox" id="fixedMoments"><span data-i18n="tog_fix">固定 μ = 50、σ = 10 仅比形状</span></label>
+        <label><input type="checkbox" id="chkCurve" checked><span data-i18n="tog_curve">显示理论正态曲线</span></label>
+        <label><input type="checkbox" id="chkMean" checked><span data-i18n="tog_mean">显示模拟均值线</span></label>
+        <label><input type="checkbox" id="chkLast" checked><span data-i18n="tog_last">显示最近一次样本</span></label>
       </div>
     </section>
   </div>
 
-  <!-- DRAW BAR -->
-  <div class="drawbar" role="group" aria-label="抽样">
-    <button class="btn btn-primary" id="draw1">抽 1 次样本</button>
-    <button class="btn btn-secondary" data-draw="10">抽 10 次</button>
-    <button class="btn btn-secondary" data-draw="100">抽 100 次</button>
-    <button class="btn btn-secondary" data-draw="1000">抽 1,000 次</button>
-    <button class="btn btn-ghost" id="resetBtn">Reset 清空</button>
-    <button class="btn btn-ghost" id="csvBtn">下载 CSV</button>
-    <span class="count">已收集 <b id="repCount">0</b> 个 x̄</span>
+  <div class="action-bar" role="group" aria-label="抽样控制">
+    <button type="button" class="btn primary" id="draw1" data-i18n="btn_1">抽 1 次样本</button>
+    <button type="button" class="btn" id="draw10">+ 10</button>
+    <button type="button" class="btn" id="draw100">+ 100</button>
+    <button type="button" class="btn" id="draw1000">+ 1,000</button>
+    <button type="button" class="btn reset" id="resetBtn" data-i18n="btn_reset">Reset 清空</button>
+    <button type="button" class="btn" id="csvBtn" disabled data-i18n="btn_csv">导出 CSV</button>
+    <div class="spacer"></div>
+    <span class="rep-badge"><span data-i18n="rep_pre">已收集</span> <b id="repCount">0</b> <span data-i18n="rep_suf">个 x̄</span></span>
   </div>
 
-  <!-- CHARTS -->
-  <div class="grid2">
+  <div class="charts-grid">
     <section class="card">
-      <h2>总体分布 <span class="en">POPULATION</span></h2>
-      <p class="sub" id="popCaption">所有个体的取值。直方图由 8,000 个总体值画出。</p>
-      <div id="popChart"></div>
-      <div class="legend"><span><i style="background:var(--pop)"></i>总体值</span><span>竖线 = μ</span></div>
+      <div class="chart-head">
+        <h2 data-i18n="pop_chart_t">总体分布 · POPULATION</h2>
+        <div class="legend"><span><i class="swatch" style="background:var(--navy)"></i><span data-i18n="leg_pop">总体个体</span></span></div>
+      </div>
+      <canvas id="popChart" width="520" height="260"></canvas>
     </section>
+
     <section class="card">
-      <h2>样本均值的抽样分布 <span class="en">DISTRIBUTION OF x̄</span></h2>
-      <p class="sub" id="sampCaption">还没有数据 — 点上面「抽 1 次样本」开始。</p>
-      <div id="sampChart"></div>
-      <div class="legend"><span><i style="background:var(--samp)"></i>样本均值 x̄</span><span><i style="background:#e67e22"></i>理论正态曲线 N(μ, <span class="frac frac-sm"><span class="num">σ</span><span class="den"><math><msqrt><mi>n</mi></msqrt></math></span></span>)</span><span>竖线 = μ</span></div>
+      <div class="chart-head">
+        <h2 data-i18n="samp_chart_t">x̄ 抽样分布 · DISTRIBUTION OF x̄</h2>
+        <div class="legend">
+          <span><i class="swatch" style="background:var(--sage)"></i><span>x̄</span></span>
+          <span><i class="swatch" style="background:var(--accent)"></i><span data-i18n="leg_tail">尾部</span></span>
+          <span><i class="swatch-line"></i><span data-i18n="leg_curve">正态曲线</span></span>
+          <span><i class="swatch-dash"></i><span data-i18n="leg_mean">模拟均值</span></span>
+        </div>
+      </div>
+      <canvas id="sampChart" width="520" height="260"></canvas>
+      <div class="empty-note" id="emptyNote"></div>
     </section>
   </div>
 
-  <!-- STATS -->
   <div class="stats">
-    <div class="stat"><div class="k">理论中心 μ<sub>x̄</sub></div><div class="v" id="thMu">50.00</div><div class="d">= 总体 μ，无偏</div></div>
-    <div class="stat"><div class="k">模拟中心 · x̄ 的均值</div><div class="v" id="simMu">—</div><div class="d" id="simMuD">抽得越多越接近 μ</div></div>
-    <div class="stat highlight"><div class="k">理论标准误 <span class="keep-case eq"><span class="frac frac-sm"><span class="num">σ</span><span class="den"><math><msqrt><mi>n</mi></msqrt></math></span></span></span></div><div class="v" id="thSE">3.16</div><div class="d" id="thSED">σ=10.0，n=10</div></div>
-    <div class="stat"><div class="k">模拟 SD · x̄ 的标准差</div><div class="v" id="simSD">—</div><div class="d" id="simSDD">应接近标准误</div></div>
+    <div class="stat"><div class="k" data-i18n="st_thmu">理论中心 μ<sub>x̄</sub></div><div class="v" id="thMu">50.00</div><div class="s" data-i18n="st_thmu_s">= 总体 μ（无偏）</div></div>
+    <div class="stat highlight"><div class="k" data-i18n="st_smu">模拟中心 · x̄ 的均值</div><div class="v" id="simMu">—</div><div class="s" id="simMuD">—</div></div>
+    <div class="stat"><div class="k" data-i18n="st_thse">理论标准误 σ/√n</div><div class="v" id="thSE">3.16</div><div class="s" id="thSED">—</div></div>
+    <div class="stat highlight"><div class="k" data-i18n="st_ssd">模拟标准差 SD</div><div class="v" id="simSD">—</div><div class="s" id="simSDD">—</div></div>
   </div>
 
-  <div class="grid2">
+  <section class="card prob-card">
+    <div class="prob-controls">
+      <h2 style="margin:0" data-i18n="prob_title">概率探索器与尾部高亮</h2>
+      <div class="prob-input-wrap">
+        <label for="cutoff" data-i18n="prob_cut">临界值 c</label>
+        <input type="number" class="num-input" id="cutoff" step="0.5" value="53" style="font-size:15px;min-height:36px">
+      </div>
+      <div class="seg" role="group" aria-label="尾部高亮模式">
+        <button type="button" data-tail="none" aria-pressed="true" data-i18n="tail_none">无高亮</button>
+        <button type="button" data-tail="gt" aria-pressed="false">&gt; c</button>
+        <button type="button" data-tail="lt" aria-pressed="false">&lt; c</button>
+        <button type="button" data-tail="two" aria-pressed="false" data-i18n="tail_two">双尾</button>
+      </div>
+    </div>
+    <div class="prob-grid">
+      <div class="pbox"><div class="pk" id="pEmpLbl">P(x̄ &gt; 53.0)</div><div class="pv" id="pEmpVal">—</div><div class="ps" id="pEmpSub">—</div></div>
+      <div class="pbox"><div class="pk" data-i18n="prob_model">理论正态近似</div><div class="pv" id="pTheoVal">—</div><div class="ps" id="pTheoSub">—</div></div>
+      <div class="pbox"><div class="pk" data-i18n="prob_z">标准化 z-score</div><div class="pv" id="pZVal">—</div><div class="ps">z = (c − μ) / (σ/√n)</div></div>
+    </div>
+    <div class="prob-warn" id="probWarn" hidden data-i18n="prob_warn">⚠ 当前总体非正态且 n &lt; 30，理论正态模型仅作参考。</div>
+  </section>
+
+  <div class="sub-grid">
     <section class="card">
-      <h2>理论 vs 模拟 <span class="en">CHECK</span></h2>
-      <table>
-        <thead><tr><th></th><th class="num">理论值</th><th class="num">模拟值</th><th class="num">差距</th></tr></thead>
+      <h2 data-i18n="sec_check">理论 vs 模拟检验</h2>
+      <table class="check-tbl">
+        <thead><tr><th></th><th data-i18n="tbl_th">理论值</th><th data-i18n="tbl_sim">模拟值</th></tr></thead>
         <tbody>
-          <tr><td>中心（均值）</td><td class="num" id="tMu">—</td><td class="num" id="sMu">—</td><td class="num" id="dMu">—</td></tr>
-          <tr><td>离散程度（SD）</td><td class="num" id="tSD">—</td><td class="num" id="sSD">—</td><td class="num" id="dSD">—</td></tr>
-          <tr><td>落在 μ ± 1·SE 内</td><td class="num">≈ 68%</td><td class="num" id="s1">—</td><td class="num">—</td></tr>
-          <tr><td>落在 μ ± 2·SE 内</td><td class="num">≈ 95%</td><td class="num" id="s2">—</td><td class="num">—</td></tr>
-          <tr><td>偏度 skewness</td><td class="num">0（正态）</td><td class="num" id="sSkew">—</td><td class="num">—</td></tr>
+          <tr><td data-i18n="row_mean">中心（均值）</td><td class="mono" id="tMu">—</td><td class="mono" id="sMu">—</td></tr>
+          <tr><td data-i18n="row_sd">离散度（SE）</td><td class="mono" id="tSD">—</td><td class="mono" id="sSD">—</td></tr>
+          <tr><td>±1·SE</td><td class="mono">≈ 68%</td><td class="mono" id="sW1">—</td></tr>
+          <tr><td>±2·SE</td><td class="mono">≈ 95%</td><td class="mono" id="sW2">—</td></tr>
+          <tr><td>±3·SE</td><td class="mono">≈ 99.7%</td><td class="mono" id="sW3">—</td></tr>
+          <tr><td data-i18n="row_skew">偏度 skewness</td><td class="mono">0</td><td class="mono" id="sSkew">—</td></tr>
         </tbody>
       </table>
-      <p class="sub" style="margin-top:10px">重复次数越多，模拟值越贴理论值 — 这本身就是大数定律在抽样分布上的体现。</p>
     </section>
 
     <section class="insight" aria-live="polite">
-      <h3 id="insightTitle">💡 中心极限定理 Central Limit Theorem</h3>
-      <p id="insightText">当前总体是正态的，所以无论 n 多小，x̄ 的分布都是正态的。换成右偏或双峰总体，再把 n 从 2 拉到 30、100，看形状怎么被“拉正”、宽度怎么变窄。</p>
+      <h3 id="insightTitle"></h3>
+      <p id="insightText"></p>
     </section>
   </div>
 
-  <!-- LAST SAMPLE -->
-  <section class="card last-sample" id="lastSection">
-    <h2>最近一次样本 <span class="en">MOST RECENT SAMPLE</span></h2>
-    <p class="sub" id="lastCaption">还没抽过样。每次抽样会从总体里随机取 n 个值，算出它们的均值 x̄，放进右边的抽样分布里。</p>
-    <div id="lastBody"><div class="empty">点「抽 1 次样本」，这里会显示这一次抽到的每个值和它的 x̄</div></div>
+  <section class="card" id="lastSection" style="margin-top:14px">
+    <h2 data-i18n="sec_last">最近一次样本（单次样本 ≠ 抽样分布）</h2>
+    <div id="lastBody"></div>
   </section>
 
-  <details>
-    <summary>查看全部已收集的 x̄（最近 120 个）</summary>
-    <p class="recent" id="recentList">暂无</p>
+  <details class="extra">
+    <summary data-i18n="recent_title">查看最近 120 个样本均值 x̄</summary>
+    <p class="recent" id="recentList">—</p>
   </details>
 
-  <details>
-    <summary>上课怎么用这个模拟器？</summary>
-    <div style="font-size:14.5px;color:var(--muted);max-width:720px">
-      <p><strong style="color:var(--ink)">1. 先猜再抽：</strong>选右偏总体、n=2，先问学生 x̄ 的分布会长什么样，再抽 1,000 次揭晓 —— 还是右偏，但已经没总体那么歪。</p>
-      <p><strong style="color:var(--ink)">2. 只改 n：</strong>保持总体不变，把 n 拉到 30 再抽 1,000 次。中心不变，宽度明显变窄，形状变正态 —— 一次看清 CLT 的两个结论。</p>
-      <p><strong style="color:var(--ink)">3. 只改重复次数：</strong>n 不动，抽 10 次 vs 1,000 次，对比模拟 SD 和理论标准误的差距，讲清“模拟为什么要跑很多次”。</p>
-      <p><strong style="color:var(--ink)">注意区分三件事：</strong>总体分布（左图）≠ 一次样本的分布（最近一次样本）≠ 抽样分布（右图，很多个 x̄）。AP 考试最常见的混淆就在这里。</p>
-    </div>
-  </details>
-
-  <footer><span>随机数在浏览器本地生成，每次打开结果都不同 · 公式：μ<sub>x̄</sub> = μ，</span><span class="eq">σ<sub>x̄</sub> = <span class="frac frac-sm"><span class="num">σ</span><span class="den"><math><msqrt><mi>n</mi></msqrt></math></span></span></span></footer>
+  <footer>
+    <span data-i18n="foot">修改总体或 n 会清空已收集的 x̄；按</span> <span class="kbd">Space</span> <span data-i18n="foot2">快速抽 1 次。</span>
+  </footer>
 </div>
 
 <script>
 (function(){
-"use strict";
-// ---------- random helpers ----------
-function randNormal(mu, sigma){
-  var u=0,v=0; while(u===0) u=Math.random(); while(v===0) v=Math.random();
-  return mu + sigma * Math.sqrt(-2*Math.log(u)) * Math.cos(2*Math.PI*v);
-}
-function randExp(mean){ return -mean * Math.log(1-Math.random()); }
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var N_STEPS = [2,4,5,10,16,20,30,40,50,64,100];
+  var state = { pop:"normal", n:10, fixed:false, means:[], lastSample:null, lastMean:null, popVals:[], tail:"none", lang:"zh", cutoffTouched:false };
 
-// ---------- population definitions ----------
-var POPS = {
-  normal: { name:"正态", shape:"对称 · 钟形", mu:50, sigma:10,
-    gen:function(){ return randNormal(50,10); } },
-  uniform: { name:"均匀", shape:"平坦 · 对称", mu:50, sigma:100/Math.sqrt(12),
-    gen:function(){ return Math.random()*100; } },
-  right: { name:"右偏", shape:"右偏 · 长尾在右", mu:30, sigma:30,
-    gen:function(){ return randExp(30); } },
-  left: { name:"左偏", shape:"左偏 · 长尾在左", mu:70, sigma:30,
-    gen:function(){ return 100 - randExp(30); } },
-  bimodal: { name:"双峰", shape:"双峰 · 大致对称", mu:50, sigma:Math.sqrt(548),
-    gen:function(){ return Math.random()<0.5 ? randNormal(28,8) : randNormal(72,8); } }
-};
-var N_STEPS = [2,4,5,10,16,20,30,40,50,64,100];
-var state = { pop:"normal", n:10, fixed:false, means:[], lastSample:null, lastMean:null, popVals:[] };
-function pop(){ var base=POPS[state.pop];
-  if(!state.fixed) return base;
-  return {name:base.name, shape:base.shape, mu:50, sigma:10,
-    gen:function(){ return 50+10*(base.gen()-base.mu)/base.sigma; }}; }
-function nVal(){ return state.n; }
-function SE(){ return pop().sigma / Math.sqrt(nVal()); }
-
-// ---------- stats helpers ----------
-function mean(a){ if(!a.length) return NaN; var s=0; for(var i=0;i<a.length;i++) s+=a[i]; return s/a.length; }
-function sd(a){ if(a.length<2) return NaN; var m=mean(a), s=0; for(var i=0;i<a.length;i++) s+=(a[i]-m)*(a[i]-m); return Math.sqrt(s/(a.length-1)); }
-function skewness(a){ if(a.length<3) return NaN; var m=mean(a), s=sd(a); if(!s) return 0; var t=0; for(var i=0;i<a.length;i++) t+=Math.pow((a[i]-m)/s,3); return t*a.length/((a.length-1)*(a.length-2)); }
-function fmt(x,d){ return isNaN(x) ? "—" : x.toFixed(d==null?2:d); }
-function normalPDF(x,mu,sig){ return Math.exp(-0.5*Math.pow((x-mu)/sig,2))/(sig*Math.sqrt(2*Math.PI)); }
-
-// ---------- histogram SVG ----------
-function niceTicks(min,max,count){
-  var ticks=[], step=(max-min)/count;
-  for(var i=0;i<=count;i++) ticks.push(min+step*i);
-  return ticks;
-}
-function drawHist(elId, values, opts){
-  var el=document.getElementById(elId);
-  if(!values.length){ el.innerHTML='<div class="empty">暂无数据</div>'; return; }
-  var W=480,H=250, padL=34,padR=10,padT=14,padB=30;
-  var lo=opts.lo, hi=opts.hi;
-  if(lo==null){ lo=Math.min.apply(null,values); hi=Math.max.apply(null,values); var pad=(hi-lo)*0.06||1; lo-=pad; hi+=pad; }
-  var bins=opts.bins||22, counts=new Array(bins).fill(0), bw=(hi-lo)/bins;
-  values.forEach(function(v){ var i=Math.floor((v-lo)/bw); if(i<0)i=0; if(i>=bins)i=bins-1; counts[i]++; });
-  var maxC=Math.max.apply(null,counts);
-  // if overlay curve, scale counts area to density
-  var plotW=W-padL-padR, plotH=H-padT-padB;
-  var yMax=maxC*1.15;
-  var curvePath="";
-  if(opts.curve){
-    var total=values.length, pts=[];
-    // density * total * binwidth = expected count
-    var peak=0, i2, x2, yv;
-    for(i2=0;i2<=60;i2++){ x2=lo+(hi-lo)*i2/60; yv=normalPDF(x2,opts.curve.mu,opts.curve.sig)*total*bw; if(yv>peak)peak=yv; }
-    if(peak>yMax) yMax=peak*1.1;
-    for(i2=0;i2<=60;i2++){ x2=lo+(hi-lo)*i2/60; yv=normalPDF(x2,opts.curve.mu,opts.curve.sig)*total*bw;
-      var px=padL+(x2-lo)/(hi-lo)*plotW, py=padT+plotH-(yv/yMax)*plotH;
-      pts.push((i2===0?"M":"L")+px.toFixed(1)+","+py.toFixed(1)); }
-    curvePath=pts.join(" ");
+  function randNormal(mu, sig){
+    var u=0,v=0; while(u===0) u=Math.random(); while(v===0) v=Math.random();
+    return mu + sig * Math.sqrt(-2*Math.log(u)) * Math.cos(2*Math.PI*v);
   }
-  var s='<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+opts.label+'">';
-  // gridlines + y labels
-  for(var g=0; g<=3; g++){ var gy=padT+plotH*g/3, gv=yMax*(1-g/3);
-    s+='<line class="gridline" x1="'+padL+'" y1="'+gy+'" x2="'+(W-padR)+'" y2="'+gy+'"/>';
-    s+='<text class="axis" x="'+(padL-5)+'" y="'+(gy+4)+'" text-anchor="end">'+Math.round(gv)+'</text>'; }
-  for(var b=0;b<bins;b++){ var bx=padL+b/bins*plotW, bwid=plotW/bins-1.5, bh=(counts[b]/yMax)*plotH;
-    s+='<rect x="'+bx.toFixed(1)+'" y="'+(padT+plotH-bh).toFixed(1)+'" width="'+bwid.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="2" fill="'+opts.color+'" opacity="0.88"><title>约 '+(lo+b*bw).toFixed(1)+' – '+(lo+(b+1)*bw).toFixed(1)+'：'+counts[b]+' 个</title></rect>'; }
-  if(curvePath) s+='<path d="'+curvePath+'" fill="none" stroke="#e67e22" stroke-width="2.5"/>';
-  if(opts.muLine!=null && opts.muLine>=lo && opts.muLine<=hi){ var mx=padL+(opts.muLine-lo)/(hi-lo)*plotW;
-    s+='<line x1="'+mx+'" y1="'+padT+'" x2="'+mx+'" y2="'+(padT+plotH)+'" stroke="#e67e22" stroke-width="2" stroke-dasharray="5 4"/>'; }
-  var ticks=niceTicks(lo,hi,4);
-  ticks.forEach(function(t){ var tx=padL+(t-lo)/(hi-lo)*plotW;
-    s+='<text class="axis" x="'+tx+'" y="'+(H-8)+'" text-anchor="middle">'+t.toFixed(Math.abs(hi-lo)>40?0:1)+'</text>'; });
-  s+='<line x1="'+padL+'" y1="'+(padT+plotH)+'" x2="'+(W-padR)+'" y2="'+(padT+plotH)+'" stroke="var(--line)"/>';
-  s+='</svg>';
-  el.innerHTML=s;
-}
+  function randExp(mean){ return -mean * Math.log(1 - Math.random()); }
 
-// fixed population range per type for stable axis
-function popRange(){
-  if(state.fixed) return [0,110];
-  switch(state.pop){
-    case "normal": return [10,90];
-    case "uniform": return [-4,104];
-    case "right": return [-6,150];
-    case "left": return [-50,106];
-    case "bimodal": return [-4,104];
+  var POPS = {
+    normal:  { mu:50, sigma:10, zh:"对称 · 钟形", en:"Symmetric · Bell", gen:function(){ return randNormal(50,10); } },
+    uniform: { mu:50, sigma:100/Math.sqrt(12), zh:"平坦 · 对称", en:"Flat · Symmetric", gen:function(){ return Math.random()*100; } },
+    right:   { mu:30, sigma:30, zh:"右偏 · 长尾在右", en:"Skewed Right", gen:function(){ return randExp(30); } },
+    left:    { mu:70, sigma:30, zh:"左偏 · 长尾在左", en:"Skewed Left", gen:function(){ return 100 - randExp(30); } },
+    bimodal: { mu:50, sigma:Math.sqrt(548), zh:"双峰 · 对称", en:"Bimodal · Symmetric", gen:function(){ return Math.random()<0.5 ? randNormal(28,8) : randNormal(72,8); } }
+  };
+
+  var I18N = {
+    zh:{
+      nav_p:"样本比例 p̂", nav_pd:"两样本比例差 p̂₁ − p̂₂", nav_m:"样本均值 x̄", nav_md:"两样本均值差 x̄₁ − x̄₂",
+      h1:"样本均值的抽样分布 <em>x̄</em>",
+      sub:"切换总体形状与样本量 <b>n</b>，反复抽取样本均值 <b>x̄</b>，直观见证中心极限定理（CLT）与标准误规律。",
+      f_mean:"中心", f_sd:"标准误 (SE)", f_shape:"正态条件", f_shape_v:"总体正态 或 n ≥ 30 (CLT)", f_ind:"独立性",
+      guide_title:"课堂练习引导（Worksheet Guide）",
+      guide_body:"第 3 页 A：选「右偏」总体，依次用 n = 4、16、64，每次抽 1,000 次，记录模拟均值和模拟 SD。第 4 页 B：勾选「固定 μ = 50、σ = 10 仅比形状」，切换不同总体比较抽样分布形态。",
+      sec_pop:"1 · 选择总体分布", p_norm:"正态 Normal", p_norm_s:"钟形 · 对称", p_unif:"均匀 Uniform", p_unif_s:"平坦 · 对称",
+      p_right:"右偏 Right", p_right_s:"长尾在右", p_left:"左偏 Left", p_left_s:"长尾在左", p_bi:"双峰 Bimodal", p_bi_s:"两个峰",
+      pm_mu:"总体均值 μ", pm_sd:"总体标准差 σ", pm_sh:"总体形状",
+      sec_n:"2 · 样本量 n 与视图选项",
+      tog_fix:"固定 μ = 50、σ = 10 仅比形状", tog_curve:"显示理论正态曲线", tog_mean:"显示模拟均值线", tog_last:"显示最近一次样本",
+      btn_1:"抽 1 次样本", btn_reset:"Reset 清空", btn_csv:"导出 CSV", rep_pre:"已收集", rep_suf:"个 x̄",
+      pop_chart_t:"总体分布 · POPULATION", leg_pop:"总体个体（8,000 点）",
+      samp_chart_t:"x̄ 抽样分布 · DISTRIBUTION OF x̄", leg_tail:"尾部", leg_curve:"正态曲线", leg_mean:"模拟均值",
+      st_thmu:"理论中心 μ<sub>x̄</sub>", st_thmu_s:"= 总体 μ（无偏）", st_smu:"模拟中心 · x̄ 的均值", st_thse:"理论标准误 σ/√n", st_ssd:"模拟标准差 SD",
+      prob_title:"概率探索器与尾部高亮", prob_cut:"临界值 c", tail_none:"无高亮", tail_two:"双尾",
+      prob_model:"理论正态近似", prob_z:"标准化 z-score",
+      prob_warn:"⚠ 当前总体非正态且 n < 30，理论正态模型仅作参考。",
+      sec_check:"理论 vs 模拟检验", tbl_th:"理论值", tbl_sim:"模拟值", row_mean:"中心（均值）", row_sd:"离散度（SE）", row_skew:"偏度 skewness",
+      sec_last:"最近一次样本（单次样本 ≠ 抽样分布）", recent_title:"查看最近 120 个样本均值 x̄",
+      foot:"修改总体或 n 会清空已收集的 x̄；按", foot2:"快速抽 1 次。",
+      empty:"还没有 x̄ — 点击「抽 1 次样本」或「+ 1,000」开始。",
+      last_empty:"尚未抽样。点击抽样后这里会展示该次抽到的 n 个具体数值及其均值 x̄。"
+    },
+    en:{
+      nav_p:"Sample Proportion p̂", nav_pd:"Diff of Proportions p̂₁ − p̂₂", nav_m:"Sample Mean x̄", nav_md:"Diff of Means x̄₁ − x̄₂",
+      h1:"Sampling Distribution of <em>x̄</em>",
+      sub:"Pick a population shape and sample size <b>n</b>, draw repeated sample means <b>x̄</b>, and watch the Central Limit Theorem unfold.",
+      f_mean:"Center", f_sd:"Spread (SE)", f_shape:"Shape ≈ Normal", f_shape_v:"Normal pop OR n ≥ 30 (CLT)", f_ind:"Independence",
+      guide_title:"Classroom Worksheet Guide",
+      guide_body:"Page 3 A: Choose Right-skewed population and run n = 4, 16, 64 (1,000 draws each) to record mean & SD. Page 4 B: Check 'Fix μ = 50, σ = 10' to compare shapes cleanly.",
+      sec_pop:"1 · Population Distribution", p_norm:"Normal", p_norm_s:"Bell-shaped", p_unif:"Uniform", p_unif_s:"Flat · Symmetric",
+      p_right:"Right-skewed", p_right_s:"Long right tail", p_left:"Left-skewed", p_left_s:"Long left tail", p_bi:"Bimodal", p_bi_s:"Two peaks",
+      pm_mu:"Population μ", pm_sd:"Population σ", pm_sh:"Shape",
+      sec_n:"2 · Sample Size n & Options",
+      tog_fix:"Fix μ = 50, σ = 10 (shape only)", tog_curve:"Show Normal curve", tog_mean:"Show simulated mean", tog_last:"Show last sample",
+      btn_1:"Draw 1 Sample", btn_reset:"Reset", btn_csv:"Download CSV", rep_pre:"Collected", rep_suf:"x̄ values",
+      pop_chart_t:"Population Distribution", leg_pop:"Population (8,000 draws)",
+      samp_chart_t:"Sampling Distribution of x̄", leg_tail:"Shaded tail", leg_curve:"Normal curve", leg_mean:"Simulated mean",
+      st_thmu:"Theoretical Center μ<sub>x̄</sub>", st_thmu_s:"= Population μ (unbiased)", st_smu:"Simulated Mean of x̄", st_thse:"Theoretical SE σ/√n", st_ssd:"Simulated SD of x̄",
+      prob_title:"Probability Explorer & Tail Shading", prob_cut:"Cutoff c", tail_none:"None", tail_two:"Two-tail",
+      prob_model:"Normal Model", prob_z:"z-score",
+      prob_warn:"⚠ Population is non-Normal and n < 30; the Normal approximation may be skewed.",
+      sec_check:"Theory vs. Simulation", tbl_th:"Theory", tbl_sim:"Simulated", row_mean:"Center (Mean)", row_sd:"Spread (SE)", row_skew:"Skewness",
+      sec_last:"Most Recent Sample (One sample ≠ Sampling distribution)", recent_title:"View Last 120 Sample Means (x̄)",
+      foot:"Changing population or n clears collected x̄ values; press", foot2:"to draw 1.",
+      empty:"No x̄ values yet — click Draw 1 Sample or + 1,000 to begin.",
+      last_empty:"No draws yet. Each draw displays the n sampled observations and their mean x̄."
+    }
+  };
+
+  function t(k){ return (I18N[state.lang] && I18N[state.lang][k]) || I18N.zh[k] || k; }
+  function clamp(v,lo,hi){ return Math.min(hi, Math.max(lo, v)); }
+  function fmt(x,d){ return (x===null||x===undefined||isNaN(x)) ? "—" : Number(x).toFixed(d===undefined?2:d); }
+  function cssVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+  function arrMinMax(arr){
+    if(!arr.length) return [0,0];
+    var mn=arr[0], mx=arr[0];
+    for(var i=1;i<arr.length;i++){ if(arr[i]<mn) mn=arr[i]; if(arr[i]>mx) mx=arr[i]; }
+    return [mn,mx];
   }
-  return [0,100];
-}
-
-function genPopVals(){ var population=pop(); state.popVals=[]; for(var i=0;i<8000;i++) state.popVals.push(population.gen()); }
-
-// ---------- render ----------
-function render(){
-  var p=pop(), n=nVal(), se=SE();
-  document.getElementById("popMu").textContent=fmt(p.mu,1);
-  document.getElementById("popSigma").textContent=fmt(p.sigma,2).replace(/0$/,"");
-  document.getElementById("popShape").textContent=p.shape;
-  document.getElementById("nVal").value=n;
-  document.getElementById("nSlider").value=n;
-  document.getElementById("thMu").textContent=fmt(p.mu);
-  document.getElementById("thSE").textContent=fmt(se);
-  document.getElementById("thSED").innerHTML="σ = "+fmt(p.sigma,1)+"，n = "+n+" &nbsp;→&nbsp; <span class=\"frac frac-sm\"><span class=\"num\">"+fmt(p.sigma,1)+"</span><span class=\"den\">"+fmt(Math.sqrt(n))+"</span></span>";
-  document.getElementById("repCount").textContent=state.means.length.toLocaleString();
-
-  var r=popRange();
-  drawHist("popChart", state.popVals, {color:"var(--pop)", lo:r[0], hi:r[1], bins:24, muLine:p.mu, label:"总体分布直方图"});
-
-  var showCurve=document.getElementById("showCurve").checked;
-  if(state.means.length){
-    var mLo=Math.min(p.mu-4*se, Math.min.apply(null,state.means));
-    var mHi=Math.max(p.mu+4*se, Math.max.apply(null,state.means));
-    drawHist("sampChart", state.means, {color:"var(--samp)", lo:mLo, hi:mHi, bins:22, muLine:p.mu,
-      curve: showCurve ? {mu:p.mu, sig:se} : null, label:"样本均值抽样分布直方图"});
-    document.getElementById("sampCaption").textContent="共 "+state.means.length.toLocaleString()+" 个样本均值，每个来自 n = "+n+" 的一次样本。橙色曲线是理论正态 N("+fmt(p.mu,1)+", "+fmt(se)+")。";
-  } else {
-    document.getElementById("sampChart").innerHTML='<div class="empty" style="padding:52px 20px">还没有 x̄<br><span style="font-size:13px">抽样后，这里会出现抽样分布</span></div>';
-    document.getElementById("sampCaption").textContent="还没有数据 — 点上面「抽 1 次样本」开始。";
+  function normalPDF(x,mu,sd){ var z=(x-mu)/sd; return Math.exp(-0.5*z*z)/(sd*Math.sqrt(2*Math.PI)); }
+  function normalCDF(z){
+    var a=Math.abs(z), p=1/(1+0.2316419*a);
+    var poly=p*(0.319381530+p*(-0.356563782+p*(1.781477937+p*(-1.821255978+p*1.330274429))));
+    var c=1-Math.exp(-0.5*a*a)/Math.sqrt(2*Math.PI)*poly;
+    return z>=0 ? c : 1-c;
   }
 
-  // stats
-  var sm=mean(state.means), ssd=sd(state.means), sk=skewness(state.means);
-  document.getElementById("simMu").textContent= state.means.length? fmt(sm):"—";
-  document.getElementById("simSD").textContent= state.means.length>1? fmt(ssd):"—";
-  document.getElementById("simMuD").innerHTML= state.means.length? "与 μ 的差距 <b>"+fmt(Math.abs(sm-p.mu))+"</b>" : "抽得越多越接近 μ";
-  document.getElementById("simSDD").innerHTML= state.means.length>1? "与 SE 的差距 <b>"+fmt(Math.abs(ssd-se))+"</b>" : "应接近标准误";
-  document.getElementById("tMu").textContent=fmt(p.mu); document.getElementById("sMu").textContent=fmt(sm); document.getElementById("dMu").textContent= state.means.length? fmt(Math.abs(sm-p.mu)):"—";
-  document.getElementById("tSD").textContent=fmt(se); document.getElementById("sSD").textContent=fmt(ssd); document.getElementById("dSD").textContent= state.means.length>1? fmt(Math.abs(ssd-se)):"—";
-  if(state.means.length){
-    var c1=0,c2=0;
-    state.means.forEach(function(v){ var d=Math.abs(v-p.mu); if(d<=se)c1++; if(d<=2*se)c2++; });
-    document.getElementById("s1").textContent=(100*c1/state.means.length).toFixed(1)+"%";
-    document.getElementById("s2").textContent=(100*c2/state.means.length).toFixed(1)+"%";
-    document.getElementById("sSkew").textContent=fmt(sk);
-  } else { document.getElementById("s1").textContent="—"; document.getElementById("s2").textContent="—"; document.getElementById("sSkew").textContent="—"; }
-
-  // last sample
-  var showLast=document.getElementById("showLast").checked;
-  document.getElementById("lastSection").style.display= showLast? "":"none";
-  if(state.lastSample){
-    var dots=state.lastSample.map(function(v){ return '<span class="dot">'+fmt(v,1)+'</span>'; }).join("");
-    if(state.lastSample.length>40) dots=state.lastSample.slice(0,40).map(function(v){ return '<span class="dot">'+fmt(v,1)+'</span>'; }).join("")+'<span class="dot">… 共 '+state.lastSample.length+' 个</span>';
-    document.getElementById("lastCaption").innerHTML="这一次抽到的 <b>"+state.lastSample.length+"</b> 个值，均值 <b style='color:var(--teal)'>x̄ = "+fmt(state.lastMean)+"</b>，已放进抽样分布。总体 μ = "+fmt(p.mu,1)+"，这一次偏了 "+fmt(Math.abs(state.lastMean-p.mu))+"。";
-    document.getElementById("lastBody").innerHTML='<div class="dots">'+dots+'<span class="dot mean-dot">x̄ = '+fmt(state.lastMean)+'</span></div>';
+  function pop(){
+    var base = POPS[state.pop];
+    if(!state.fixed) return base;
+    return { mu:50, sigma:10, zh:base.zh, en:base.en, gen:function(){ return 50 + 10*(base.gen()-base.mu)/base.sigma; } };
   }
-  var recent=state.means.slice(-120).map(function(v){return fmt(v,1);}).join(" · ");
-  document.getElementById("recentList").textContent= recent||"暂无";
-
-  // insight
-  var title=document.getElementById("insightTitle"), text=document.getElementById("insightText");
-  if(state.pop==="normal"){
-    title.textContent="💡 总体是正态 → x̄ 永远正态";
-    text.innerHTML="总体本身正态时，任何 n 下 x̄ 的抽样分布都是正态的，CLT 都不需要出场。n 变大唯一的效果是分布变窄：n 从 "+n+" 再往上拉，看标准误怎么按 <span class=\"frac frac-sm\"><span class=\"num\">1</span><span class=\"den\"><math><msqrt><mi>n</mi></msqrt></math></span></span> 缩小 — n 变 4 倍，SE 才减半。";
-  } else if(n<30){
-    title.textContent="💡 n = "+n+" 还小：抽样分布还带着总体的形状";
-    text.textContent="总体是"+p.name+"的，n 只有 "+n+"，x̄ 的分布还会明显保留总体的偏斜/双峰。中心已经对了（≈ μ = "+fmt(p.mu,1)+"），但形状还不正态，所以这时不能直接套正态近似算概率。把 n 拉到 30 以上再抽 1,000 次对比。";
-  } else {
-    title.textContent="💡 n = "+n+"：观察抽样分布是否接近钟形";
-    text.innerHTML="总体明明是"+p.name+"的，但 n = "+n+" 时，比较直方图和正态曲线。中心极限定理描述随 n 增大而接近正态的趋势，所需样本量取决于总体形状。同时宽度只剩总体的 <span class=\"frac frac-sm\"><span class=\"num\">1</span><span class=\"den\"><math><msqrt><mn>"+n+"</mn></msqrt></math></span></span> ≈ "+fmt(1/Math.sqrt(n),2)+" 倍：SE = "+fmt(se)+"，而总体 σ = "+fmt(p.sigma,1)+"。中心不变、形状变正、宽度变窄，三件事一起发生。";
+  function SE(){ return pop().sigma / Math.sqrt(state.n); }
+  function inTail(val, c, mode, mu){
+    if(mode==="gt") return val > c;
+    if(mode==="lt") return val < c;
+    if(mode==="two") return Math.abs(val-mu) >= Math.abs(c-mu) - 1e-12;
+    return false;
   }
-  function setN(n){
-  if(Number.isInteger(n) && n>=1 && n<=100 && n!==state.n){ state.n=n; resetMeans(); }
-  document.getElementById("nVal").value=state.n;
-}
-var numberInput=document.getElementById("nVal");
-numberInput.addEventListener("change",function(){setN(this.valueAsNumber);});
-numberInput.addEventListener("keydown",function(e){if(e.key==="Enter") this.blur();});
-document.getElementById("fixedMoments").addEventListener("change",function(){
-  state.fixed=this.checked; genPopVals(); resetMeans();
-});
-// n presets active
-  var btns=document.querySelectorAll("#nPresets button");
-  btns.forEach(function(b,i){ b.classList.toggle("active", N_STEPS[i]===state.n); });
-}
 
-// ---------- actions ----------
-function drawSamples(k){
-  var n=nVal();
-  var population=pop();
-  for(var r=0;r<k;r++){
-    var s=[], sum=0;
-    for(var i=0;i<n;i++){ var v=population.gen(); s.push(v); sum+=v; }
-    state.means.push(sum/n);
-    if(r===k-1){ state.lastSample=s; state.lastMean=sum/n; }
+  function genPopVals(){
+    var p = pop(), arr = [];
+    for(var i=0;i<8000;i++) arr.push(p.gen());
+    state.popVals = arr;
   }
-  render();
-}
-function resetMeans(){ state.means=[]; state.lastSample=null; state.lastMean=null; render(); }
 
-document.getElementById("draw1").addEventListener("click", function(){ drawSamples(1); });
-document.querySelectorAll("[data-draw]").forEach(function(b){
-  b.addEventListener("click", function(){ drawSamples(parseInt(b.getAttribute("data-draw"),10)); });
-});
-document.getElementById("resetBtn").addEventListener("click", resetMeans);
-document.getElementById("showCurve").addEventListener("change", render);
-document.getElementById("showLast").addEventListener("change", render);
+  function popDisplayBounds(p){
+    if(state.pop === "right") return [p.mu - 1.3 * p.sigma, p.mu + 4.8 * p.sigma];
+    if(state.pop === "left")  return [p.mu - 4.8 * p.sigma, p.mu + 1.3 * p.sigma];
+    if(state.pop === "uniform"){ var half = p.sigma * Math.sqrt(3); return [p.mu - half*1.12, p.mu + half*1.12]; }
+    return [p.mu - 3.6 * p.sigma, p.mu + 3.6 * p.sigma];
+  }
 
-document.querySelectorAll("#popPills .pill").forEach(function(b){
-  b.addEventListener("click", function(){
-    document.querySelectorAll("#popPills .pill").forEach(function(x){ x.setAttribute("aria-pressed","false"); });
-    b.setAttribute("aria-pressed","true");
-    state.pop=b.getAttribute("data-pop");
+  function applyLang(){
+    document.documentElement.lang = state.lang === "zh" ? "zh-CN" : "en";
+    $("langZh").setAttribute("aria-pressed", String(state.lang==="zh"));
+    $("langEn").setAttribute("aria-pressed", String(state.lang==="en"));
+    document.querySelectorAll("[data-i18n]").forEach(function(el){ el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll("[data-i18n-html]").forEach(function(el){ el.innerHTML = t(el.dataset.i18nHtml); });
+    render();
+  }
+
+  function drawPopChart(){
+    var cv = $("popChart"), wrap = cv.parentElement;
+    var W = wrap.clientWidth, H = cv.clientHeight || 260, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    var ctx = cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+
+    var p = pop(), bnds = popDisplayBounds(p), lo = bnds[0], hi = bnds[1];
+    var bins = 26, bw = (hi - lo) / bins, counts = new Array(bins).fill(0);
+    // Skip extreme outliers outside display bounds so edge bins never show artificial spikes
+    for(var i=0;i<state.popVals.length;i++){
+      var idx = Math.floor((state.popVals[i] - lo) / bw);
+      if(idx >= 0 && idx < bins) counts[idx]++;
+    }
+    var maxC = 1; for(i=0;i<bins;i++) if(counts[i]>maxC) maxC=counts[i];
+    var yMax = maxC * 1.12;
+    var padL = 40, padR = 12, padT = 14, padB = 30, cw = W - padL - padR, ch = H - padT - padB;
+    function X(v){ return padL + (v - lo) / (hi - lo) * cw; }
+    function Y(c){ return padT + ch - (c / yMax) * ch; }
+
+    var navy = cssVar("--navy"), muted = cssVar("--ink-3"), line = cssVar("--line"), accent = cssVar("--accent");
+    ctx.font = "11px ui-monospace, Menlo, monospace"; ctx.lineWidth = 1;
+    for(var s=0;s<=3;s++){
+      var cval = (yMax / 1.12) * s / 3, yy = Y(cval);
+      ctx.strokeStyle = line; ctx.beginPath(); ctx.moveTo(padL,yy); ctx.lineTo(W-padR,yy); ctx.stroke();
+      ctx.fillStyle = muted; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+      ctx.fillText(Math.round(cval).toString(), padL-6, yy);
+    }
+
+    ctx.fillStyle = navy; ctx.globalAlpha = 0.82;
+    for(var b=0;b<bins;b++){
+      if(!counts[b]) continue;
+      var x0 = X(lo + b*bw) + 0.6, x1 = X(lo + (b+1)*bw) - 0.6;
+      ctx.fillRect(x0, Y(counts[b]), Math.max(2, x1 - x0), (counts[b]/yMax)*ch);
+    }
+    ctx.globalAlpha = 1;
+
+    var mx = X(p.mu);
+    ctx.strokeStyle = accent; ctx.lineWidth = 2; ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(mx, padT); ctx.lineTo(mx, Y(0)); ctx.stroke(); ctx.setLineDash([]);
+
+    ctx.strokeStyle = muted; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, Y(0)); ctx.lineTo(W-padR, Y(0)); ctx.stroke();
+    ctx.fillStyle = muted; ctx.textAlign = "center"; ctx.textBaseline = "top";
+    for(var tk=0;tk<=4;tk++){
+      var tv = lo + (hi - lo) * tk / 4;
+      ctx.fillText(tv.toFixed(0), X(tv), Y(0)+7);
+    }
+    ctx.fillStyle = accent; ctx.font = "700 11px ui-monospace, Menlo, monospace";
+    ctx.fillText("μ=" + p.mu.toFixed(1), clamp(mx, padL+24, W-padR-24), Y(0)+19);
+  }
+
+  function drawSampChart(){
+    var cv = $("sampChart"), wrap = cv.parentElement;
+    var W = wrap.clientWidth, H = cv.clientHeight || 260, dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    var ctx = cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+
+    var p = pop(), se = SE(), means = state.means, N = means.length;
+    var mm = arrMinMax(means);
+    var lo = p.mu - 4 * se, hi = p.mu + 4 * se;
+    if(N > 0){ lo = Math.min(lo, mm[0]); hi = Math.max(hi, mm[1]); }
+    var span = hi - lo || 1; lo -= span * 0.04; hi += span * 0.04;
+
+    var bins = 24, bw = (hi - lo) / bins, counts = new Array(bins).fill(0);
+    for(var i=0;i<N;i++){
+      var idx = Math.floor((means[i] - lo) / bw);
+      if(idx < 0) idx = 0; if(idx >= bins) idx = bins - 1;
+      counts[idx]++;
+    }
+    var maxC = 1; for(i=0;i<bins;i++) if(counts[i]>maxC) maxC=counts[i];
+    var showCurve = $("chkCurve").checked;
+    if(showCurve && N > 0 && se > 0){
+      var peak = N * bw * normalPDF(p.mu, p.mu, se);
+      if(peak > maxC) maxC = peak;
+    }
+    var yMax = maxC * 1.14;
+
+    var padL = 40, padR = 12, padT = 14, padB = 30, cw = W - padL - padR, ch = H - padT - padB;
+    function X(v){ return padL + (v - lo) / (hi - lo) * cw; }
+    function Y(c){ return padT + ch - (c / yMax) * ch; }
+
+    var ink = cssVar("--ink"), muted = cssVar("--ink-3"), line = cssVar("--line"),
+        sage = cssVar("--sage"), accent = cssVar("--accent"), danger = cssVar("--danger");
+
+    ctx.font = "11px ui-monospace, Menlo, monospace"; ctx.lineWidth = 1;
+    for(var s=0;s<=3;s++){
+      var cval = (yMax / 1.14) * s / 3, yy = Y(cval);
+      ctx.strokeStyle = line; ctx.beginPath(); ctx.moveTo(padL,yy); ctx.lineTo(W-padR,yy); ctx.stroke();
+      ctx.fillStyle = muted; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+      ctx.fillText(Math.round(cval).toString(), padL-6, yy);
+    }
+
+    var cCut = parseFloat($("cutoff").value), tailMode = state.tail;
+    for(var b=0;b<bins;b++){
+      if(!counts[b]) continue;
+      var xL = lo + b * bw, xR = lo + (b + 1) * bw, midB = (xL + xR) / 2;
+      var shaded = !isNaN(cCut) && inTail(midB, cCut, tailMode, p.mu);
+      ctx.fillStyle = shaded ? accent : sage;
+      ctx.globalAlpha = shaded ? 0.92 : (tailMode === "none" ? 0.84 : 0.42);
+      var px0 = X(xL) + 0.6, px1 = X(xR) - 0.6;
+      ctx.fillRect(px0, Y(counts[b]), Math.max(2, px1 - px0), (counts[b]/yMax)*ch);
+    }
+    ctx.globalAlpha = 1;
+
+    if(showCurve && N > 0 && se > 0){
+      if(tailMode !== "none" && !isNaN(cCut)){
+        ctx.fillStyle = accent; ctx.globalAlpha = 0.22;
+        var shadeInt = function(a, bnd){
+          if(bnd <= a) return;
+          ctx.beginPath(); ctx.moveTo(X(a), Y(0));
+          for(var j=0;j<=80;j++){
+            var xv = a + (bnd - a) * j / 80;
+            ctx.lineTo(X(xv), Y(N * bw * normalPDF(xv, p.mu, se)));
+          }
+          ctx.lineTo(X(bnd), Y(0)); ctx.closePath(); ctx.fill();
+        };
+        if(tailMode === "gt" && cCut < hi) shadeInt(Math.max(lo, cCut), hi);
+        if(tailMode === "lt" && cCut > lo) shadeInt(lo, Math.min(hi, cCut));
+        if(tailMode === "two"){
+          var dCut = Math.abs(cCut - p.mu);
+          if(p.mu - dCut > lo) shadeInt(lo, Math.min(hi, p.mu - dCut));
+          if(p.mu + dCut < hi) shadeInt(Math.max(lo, p.mu + dCut), hi);
+        }
+        ctx.globalAlpha = 1;
+      }
+      ctx.beginPath(); ctx.strokeStyle = accent; ctx.lineWidth = 2.4;
+      for(var px=0;px<=140;px++){
+        var xv2 = lo + (hi - lo) * px / 140;
+        var yv2 = Y(N * bw * normalPDF(xv2, p.mu, se));
+        if(px===0) ctx.moveTo(X(xv2), yv2); else ctx.lineTo(X(xv2), yv2);
+      }
+      ctx.stroke();
+    }
+
+    if(tailMode !== "none" && !isNaN(cCut) && cCut >= lo && cCut <= hi){
+      ctx.strokeStyle = accent; ctx.lineWidth = 1.8; ctx.setLineDash([4,3]);
+      ctx.beginPath(); ctx.moveTo(X(cCut), padT); ctx.lineTo(X(cCut), Y(0)); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = accent; ctx.font = "700 11px ui-monospace, Menlo, monospace";
+      ctx.textAlign = cCut > (lo+hi)/2 ? "right" : "left"; ctx.textBaseline = "top";
+      ctx.fillText("c=" + cCut.toFixed(1), X(cCut) + (cCut > (lo+hi)/2 ? -5 : 5), padT+2);
+    }
+
+    if($("chkMean").checked && N > 0){
+      var sm = 0; for(i=0;i<N;i++) sm += means[i]; sm /= N;
+      var mx = X(sm);
+      ctx.strokeStyle = danger; ctx.lineWidth = 2; ctx.setLineDash([6,4]);
+      ctx.beginPath(); ctx.moveTo(mx, padT); ctx.lineTo(mx, Y(0)); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = danger; ctx.font = "700 11px ui-monospace, Menlo, monospace";
+      ctx.textAlign = sm > (lo+hi)/2 ? "right" : "left"; ctx.textBaseline = "top";
+      ctx.fillText((state.lang==="zh"?"均值=":"mean=")+fmt(sm), mx+(sm>(lo+hi)/2?-5:5), padT+15);
+    }
+
+    ctx.strokeStyle = ink; ctx.lineWidth = 1.4; ctx.setLineDash([2,3]);
+    ctx.beginPath(); ctx.moveTo(X(p.mu), padT); ctx.lineTo(X(p.mu), Y(0)); ctx.stroke(); ctx.setLineDash([]);
+
+    ctx.strokeStyle = muted; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, Y(0)); ctx.lineTo(W-padR, Y(0)); ctx.stroke();
+    ctx.fillStyle = muted; ctx.font = "11px ui-monospace, Menlo, monospace"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+    for(var tk=0;tk<=4;tk++){
+      var tv = lo + (hi - lo) * tk / 4;
+      ctx.fillText(tv.toFixed(1), X(tv), Y(0)+7);
+    }
+  }
+
+  function updateProb(){
+    var c = parseFloat($("cutoff").value);
+    if(isNaN(c)) return;
+    var p = pop(), se = SE(), z = se > 0 ? (c - p.mu) / se : 0;
+    var mode = state.tail, N = state.means.length;
+
+    $("pEmpLbl").textContent = mode === "lt" ? "P(x̄ < " + c.toFixed(1) + ")"
+      : mode === "two" ? "P(|x̄ − μ| ≥ " + Math.abs(c - p.mu).toFixed(1) + ")"
+      : "P(x̄ > " + c.toFixed(1) + ")";
+
+    var theoP = mode === "lt" ? normalCDF(z)
+              : mode === "two" ? 2 * (1 - normalCDF(Math.abs(z)))
+              : 1 - normalCDF(z);
+    $("pTheoVal").textContent = (theoP * 100).toFixed(1) + "%";
+    $("pTheoSub").textContent = "N(" + p.mu.toFixed(1) + ", " + fmt(se) + ")";
+    $("pZVal").textContent = (z >= 0 ? "+" : "") + z.toFixed(2);
+    $("probWarn").hidden = (state.pop === "normal" || state.n >= 30);
+
+    if(N === 0){
+      $("pEmpVal").textContent = "—";
+      $("pEmpSub").textContent = state.lang === "zh" ? "抽样后显示模拟占比" : "Draw samples to compare";
+    } else {
+      var checkMode = mode === "none" ? "gt" : mode;
+      var cnt = 0;
+      for(var i=0;i<N;i++) if(inTail(state.means[i], c, checkMode, p.mu)) cnt++;
+      $("pEmpVal").textContent = (cnt / N * 100).toFixed(1) + "%";
+      $("pEmpSub").textContent = cnt.toLocaleString() + " / " + N.toLocaleString();
+    }
+  }
+
+  function render(){
+    var p = pop(), n = state.n, se = SE(), means = state.means, N = means.length;
+    $("popMu").textContent = fmt(p.mu, 1);
+    $("popSigma").textContent = fmt(p.sigma, 2).replace(/0$/, "");
+    $("popShape").textContent = state.lang === "zh" ? p.zh : p.en;
+    $("nNum").value = n;
+    $("nSlider").value = Math.min(n, 100);
+    $("repCount").textContent = N.toLocaleString();
+    $("csvBtn").disabled = N === 0;
+
+    if(!state.cutoffTouched){
+      $("cutoff").value = (Math.round((p.mu + se) * 2) / 2).toFixed(1);
+    }
+
+    $("thMu").textContent = fmt(p.mu);
+    $("thSE").textContent = fmt(se);
+    $("thSED").textContent = "σ = " + fmt(p.sigma, 1) + ", n = " + n;
+    $("tMu").textContent = fmt(p.mu);
+    $("tSD").textContent = fmt(se);
+
+    document.querySelectorAll("#nPresets button").forEach(function(b, i){
+      b.classList.toggle("active", N_STEPS[i] === n);
+    });
+
+    if(N === 0){
+      $("emptyNote").hidden = false; $("emptyNote").textContent = t("empty");
+      $("simMu").textContent = $("simSD").textContent = "—";
+      $("simMuD").textContent = state.lang === "zh" ? "应接近 μ" : "Should approach μ";
+      $("simSDD").textContent = state.lang === "zh" ? "应接近标准误" : "Should approach SE";
+      $("sMu").textContent = $("sSD").textContent = $("sW1").textContent = $("sW2").textContent = $("sW3").textContent = $("sSkew").textContent = "—";
+    } else {
+      $("emptyNote").hidden = true;
+      var sum = 0, i; for(i=0;i<N;i++) sum += means[i];
+      var sm = sum / N, ss = 0, c1 = 0, c2 = 0, c3 = 0;
+      for(i=0;i<N;i++){
+        var d = means[i] - sm; ss += d * d;
+        var ad = Math.abs(means[i] - p.mu);
+        if(ad <= se) c1++; if(ad <= 2*se) c2++; if(ad <= 3*se) c3++;
+      }
+      var ssd = N > 1 ? Math.sqrt(ss / (N - 1)) : NaN;
+      var skew = NaN;
+      if(N >= 3 && ssd > 0){
+        var m3 = 0; for(i=0;i<N;i++) m3 += Math.pow((means[i] - sm) / ssd, 3);
+        skew = m3 * N / ((N - 1) * (N - 2));
+      }
+      $("simMu").textContent = fmt(sm);
+      $("simMuD").textContent = (state.lang==="zh" ? "误差 " : "off by ") + fmt(Math.abs(sm - p.mu));
+      $("simSD").textContent = N > 1 ? fmt(ssd) : "—";
+      $("simSDD").textContent = N > 1 ? ((state.lang==="zh" ? "误差 " : "off by ") + fmt(Math.abs(ssd - se))) : "—";
+      $("sMu").textContent = fmt(sm);
+      $("sSD").textContent = N > 1 ? fmt(ssd) : "—";
+      $("sW1").textContent = (c1 / N * 100).toFixed(1) + "%";
+      $("sW2").textContent = (c2 / N * 100).toFixed(1) + "%";
+      $("sW3").textContent = (c3 / N * 100).toFixed(1) + "%";
+      $("sSkew").textContent = fmt(skew);
+    }
+
+    // Insight
+    var iTitle = $("insightTitle"), iText = $("insightText");
+    if(state.pop === "normal"){
+      iTitle.textContent = state.lang==="zh" ? "💡 总体正态 → x̄ 永远正态" : "💡 Normal Population → x̄ is Always Normal";
+      iText.textContent = state.lang==="zh"
+        ? "不管 n 多小，正态总体的样本均值分布严格正态。增大 n 只会让分布变窄（σ/√n），且 n 翻 4 倍，SE 才减半。"
+        : "For a Normal population, x̄ is strictly Normal for every sample size n. Larger n only shrinks SE by 1/√n.";
+    } else if(n < 30){
+      iTitle.textContent = state.lang==="zh" ? ("💡 n = " + n + " 较小：分布仍受总体形状影响") : ("💡 Small n = " + n + ": Population Shape Still Shows");
+      iText.textContent = state.lang==="zh"
+        ? "中心仍然无偏（≈ μ），但直方图还保留着原总体的偏斜或双峰特征。把 n 拉到 30 或 64 以上再抽 1,000 次看看 CLT 的效果。"
+        : "Center is already unbiased (≈ μ), but skew or bimodality still shows. Raise n to 30+ and draw 1,000 to watch CLT smooth it into a bell.";
+    } else {
+      iTitle.textContent = state.lang==="zh" ? ("💡 n = " + n + "：中心极限定理（CLT）生效") : ("💡 n = " + n + ": Central Limit Theorem in Action");
+      iText.textContent = state.lang==="zh"
+        ? "尽管原总体非正态，当 n ≥ 30 时 x̄ 的抽样分布已趋近正态，且宽度缩小为原总体 σ 的 1/√" + n + " ≈ " + fmt(1/Math.sqrt(n), 2) + " 倍。"
+        : "Even though the population is non-Normal, with n ≥ 30 the distribution of x̄ turns roughly Normal with SE = σ/√" + n + ".";
+    }
+
+    // Last sample
+    $("lastSection").style.display = $("chkLast").checked ? "" : "none";
+    if(state.lastSample){
+      var showN = state.lastSample.length, h = '<div class="dots">';
+      for(var k=0;k<showN;k++) h += '<span class="dot">' + fmt(state.lastSample[k], 1) + '</span>';
+      if(state.n > showN) h += '<span class="dot">… (' + state.n + ')</span>';
+      h += '<span class="dot mean-dot">x̄ = ' + fmt(state.lastMean) + '</span></div>';
+      $("lastBody").innerHTML = h;
+    } else {
+      $("lastBody").innerHTML = '<p style="margin:0;color:var(--ink-2);font-size:13.5px">' + t("last_empty") + '</p>';
+    }
+
+    $("recentList").textContent = N ? means.slice(-120).map(function(v){ return fmt(v, 1); }).join(" · ") : "—";
+
+    drawPopChart();
+    drawSampChart();
+    updateProb();
+  }
+
+  function drawSamples(k){
+    var p = pop(), n = state.n;
+    for(var r=0;r<k;r++){
+      var s = [], sum = 0;
+      for(var i=0;i<n;i++){
+        var v = p.gen();
+        if(r === k - 1 && i < 40) s.push(v);
+        sum += v;
+      }
+      var m = sum / n;
+      state.means.push(m);
+      if(r === k - 1){
+        state.lastSample = s;
+        state.lastMean = m;
+      }
+    }
+    render();
+  }
+
+  function resetMeans(){ state.means = []; state.lastSample = null; state.lastMean = null; render(); }
+
+  // Init presets & bind ALL listeners strictly once
+  var presetsEl = $("nPresets");
+  N_STEPS.forEach(function(v){
+    var b = document.createElement("button"); b.type = "button"; b.textContent = "n=" + v;
+    b.addEventListener("click", function(){ if(state.n !== v){ state.n = v; resetMeans(); } });
+    presetsEl.appendChild(b);
+  });
+
+  document.querySelectorAll("#popPills .pill").forEach(function(b){
+    b.addEventListener("click", function(){
+      document.querySelectorAll("#popPills .pill").forEach(function(x){ x.setAttribute("aria-pressed", "false"); });
+      b.setAttribute("aria-pressed", "true");
+      state.pop = b.dataset.pop;
+      genPopVals(); resetMeans();
+    });
+  });
+
+  $("nSlider").addEventListener("input", function(){
+    var v = parseInt(this.value, 10);
+    if(v !== state.n){ state.n = v; resetMeans(); }
+  });
+  $("nNum").addEventListener("change", function(){
+    var v = parseInt(this.value, 10);
+    v = isNaN(v) ? 10 : clamp(v, 1, 200);
+    if(v !== state.n){ state.n = v; resetMeans(); } else { this.value = state.n; }
+  });
+  $("fixedMoments").addEventListener("change", function(){
+    state.fixed = this.checked;
     genPopVals(); resetMeans();
   });
-});
+  $("chkCurve").addEventListener("change", drawSampChart);
+  $("chkMean").addEventListener("change", drawSampChart);
+  $("chkLast").addEventListener("change", render);
 
-function setN(n){
-  if(Number.isInteger(n) && n>=1 && n<=100 && n!==state.n){ state.n=n; resetMeans(); }
-  document.getElementById("nVal").value=state.n;
-}
-var numberInput=document.getElementById("nVal");
-numberInput.addEventListener("change",function(){setN(this.valueAsNumber);});
-numberInput.addEventListener("keydown",function(e){if(e.key==="Enter") this.blur();});
-document.getElementById("fixedMoments").addEventListener("change",function(){
-  state.fixed=this.checked; genPopVals(); resetMeans();
-});
-// n presets
-var presetsEl=document.getElementById("nPresets");
-N_STEPS.forEach(function(v,i){
-  var btn=document.createElement("button"); btn.textContent="n = "+v; btn.type="button";
-  btn.addEventListener("click", function(){ setN(v); });
-  presetsEl.appendChild(btn);
-});
-document.getElementById("nSlider").addEventListener("input", function(e){
-  setN(Number(e.target.value));
-});
+  $("draw1").addEventListener("click", function(){ drawSamples(1); });
+  $("draw10").addEventListener("click", function(){ drawSamples(10); });
+  $("draw100").addEventListener("click", function(){ drawSamples(100); });
+  $("draw1000").addEventListener("click", function(){ drawSamples(1000); });
+  $("resetBtn").addEventListener("click", resetMeans);
 
-document.getElementById("csvBtn").addEventListener("click", function(){
-  if(!state.means.length){ return; }
-  var rows=["rep,sample_mean"];
-  state.means.forEach(function(v,i){ rows.push((i+1)+","+v.toFixed(4)); });
-  var blob=new Blob([rows.join("\n")],{type:"text/csv"});
-  var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="sample_means_n"+nVal()+".csv"; a.click();
-  setTimeout(function(){ URL.revokeObjectURL(a.href); },2000);
-});
+  $("cutoff").addEventListener("input", function(){ state.cutoffTouched = true; updateProb(); drawSampChart(); });
+  document.querySelectorAll("[data-tail]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      state.tail = this.dataset.tail;
+      document.querySelectorAll("[data-tail]").forEach(function(x){ x.setAttribute("aria-pressed", String(x === btn)); });
+      updateProb(); drawSampChart();
+    });
+  });
 
-document.addEventListener("keydown", function(e){
-  if(e.code==="Space" && !/INPUT|BUTTON|TEXTAREA|SELECT/.test(document.activeElement.tagName)){
-    e.preventDefault(); drawSamples(1);
+  $("csvBtn").addEventListener("click", function(){
+    if(!state.means.length) return;
+    var rows = ["rep,sample_mean"];
+    for(var i=0;i<state.means.length;i++) rows.push((i+1) + "," + state.means[i].toFixed(5));
+    var blob = new Blob([rows.join("\n")], {type:"text/csv"});
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "sampling-mean-n" + state.n + ".csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1500);
+  });
+
+  $("langZh").addEventListener("click", function(){ state.lang = "zh"; try{localStorage.setItem("mg-sampling-lang","zh");}catch(e){} applyLang(); });
+  $("langEn").addEventListener("click", function(){ state.lang = "en"; try{localStorage.setItem("mg-sampling-lang","en");}catch(e){} applyLang(); });
+
+  document.addEventListener("keydown", function(e){
+    if(e.code === "Space" && !/INPUT|BUTTON|SELECT|TEXTAREA/.test(document.activeElement.tagName)){
+      e.preventDefault(); drawSamples(1);
+    }
+  });
+
+  var resizeT = null;
+  window.addEventListener("resize", function(){ clearTimeout(resizeT); resizeT = setTimeout(function(){ drawPopChart(); drawSampChart(); }, 100); });
+  if(window.matchMedia){
+    var mq = window.matchMedia("(prefers-color-scheme: dark)");
+    if(mq.addEventListener) mq.addEventListener("change", function(){ drawPopChart(); drawSampChart(); });
   }
-});
 
-genPopVals();
-render();
+  try { var saved = localStorage.getItem("mg-sampling-lang"); if(saved === "en" || saved === "zh") state.lang = saved; } catch(e){}
+  genPopVals();
+  applyLang();
 })();
 </script>
 </body>
