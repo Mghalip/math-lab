@@ -124,9 +124,9 @@ window.MG_MATH_TOOLS = [
     category: 'inference',
     categoryLabel: '统计 · 统计推断',
     symbol: 'CI',
-    titleZh: '置信区间捕获率模拟器',
-    titleEn: 'Confidence Interval Capture Simulator',
-    desc: '批量构建比例 z 区间与均值 t / z 区间，直观对比捕获真值的绿色区间与未捕获的红色区间，理解长期置信水平。',
+    titleZh: '置信区间与置信水平模拟器',
+    titleEn: 'Confidence Interval & Level Simulator',
+    desc: '批量抽取样本直观区分「单个置信区间」与「置信水平（长期捕获率）」，支持原地切换 80%–99% 动态伸缩、收敛曲线与课堂探究。',
     tags: ['AP Statistics', 'Unit 3 / 4', '置信区间'],
     path: 'tools/inference/confidence-interval.html',
     svg: `<svg viewBox="0 0 260 112" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">

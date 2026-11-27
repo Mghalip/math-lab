@@ -24,7 +24,7 @@
 
   <iframe class="viewer-frame" id="tool-frame" title="数学可视化互动视图" allowfullscreen></iframe>
 
-<script src="tools.js?v=2"></script>
+<script src="tools.js?v=3"></script>
 <script>
 (() => {
   const tools = window.MG_MATH_TOOLS || [];
@@ -68,7 +68,7 @@
     const sm = document.createElement('small');
     sm.textContent = tool.titleEn;
     titleEl.appendChild(sm);
-    const ver = '?v=20261127-ka3';
+    const ver = '?v=20261127-ci2';
     select.value = tool.id;
     openRaw.href = tool.path + ver;
     document.title = `${tool.titleZh} · MG Math Visual Lab`;
@@ -84,7 +84,7 @@
   function loadTool(id) {
     const tool = findById(id);
     updateChrome(tool);
-    frame.src = tool.path + '?v=20261127-ka3';
+    frame.src = tool.path + '?v=20261127-ci2';
   }
 
   // Sync top bar if user switches between sampling simulators via internal links inside iframe
