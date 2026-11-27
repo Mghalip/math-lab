@@ -137,10 +137,11 @@ button, input, select {
   border-radius: 6px;
   background: var(--navy);
   color: #fff;
-  display: grid;
-  place-items: center;
-  font: 800 14px/1 var(--sans);
-  letter-spacing: -0.03em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: 800 13.5px/1 var(--sans);
+  letter-spacing: -0.02em;
   transition: var(--t);
 }
 
