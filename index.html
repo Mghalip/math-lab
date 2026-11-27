@@ -45,9 +45,9 @@
     <div class="toolbar-row">
       <div class="filter-pills" role="group" aria-label="按学科分类筛选">
         <button type="button" class="filter-pill" data-filter="all" aria-pressed="true">全部 <span class="pill-n" id="count-all">9</span></button>
-        <button type="button" class="filter-pill" data-filter="geometry" aria-pressed="false">几何 Geometry <span class="pill-n" id="count-geometry">1</span></button>
         <button type="button" class="filter-pill" data-filter="sampling" aria-pressed="false">抽样分布 Sampling <span class="pill-n" id="count-sampling">4</span></button>
         <button type="button" class="filter-pill" data-filter="inference" aria-pressed="false">统计推断 Inference <span class="pill-n" id="count-inference">4</span></button>
+        <button type="button" class="filter-pill" data-filter="geometry" aria-pressed="false">几何 Geometry <span class="pill-n" id="count-geometry">1</span></button>
       </div>
       <div class="search-box">
         <svg class="search-ico" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -93,9 +93,9 @@
   const resetBtn = document.getElementById('filter-reset');
 
   const GROUPS = [
-    { key: 'geometry', title: '几何 · Geometry', sub: '直观几何推导与动态图形变换' },
     { key: 'sampling', title: '统计 · 抽样分布模拟器', sub: '样本比例、样本均值与双样本差值抽样实验' },
-    { key: 'inference', title: '统计 · 统计推断实验室', sub: '置信区间捕获率、两类错误与功效、t 分布及卡方列联表检验' }
+    { key: 'inference', title: '统计 · 统计推断实验室', sub: '置信区间捕获率、两类错误与功效、t 分布及卡方列联表检验' },
+    { key: 'geometry', title: '几何 · Geometry', sub: '直观几何推导与动态图形变换' }
   ];
 
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
