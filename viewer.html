@@ -68,7 +68,7 @@
     const sm = document.createElement('small');
     sm.textContent = tool.titleEn;
     titleEl.appendChild(sm);
-    const ver = '?v=20261127-ci2';
+    const ver = '?v=20261127-ci3';
     select.value = tool.id;
     openRaw.href = tool.path + ver;
     document.title = `${tool.titleZh} · MG Math Visual Lab`;
@@ -84,7 +84,7 @@
   function loadTool(id) {
     const tool = findById(id);
     updateChrome(tool);
-    frame.src = tool.path + '?v=20261127-ci2';
+    frame.src = tool.path + '?v=20261127-ci3';
   }
 
   // Sync top bar if user switches between sampling simulators via internal links inside iframe

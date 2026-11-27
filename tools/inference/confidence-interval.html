@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light">
 <link rel="icon" href="data:,">
 <title>置信区间与置信水平模拟器 · Confidence Interval &amp; Level</title>
 <script>
@@ -12,131 +12,107 @@ catch (e) { document.documentElement.classList.add('in-embed'); }
 </script>
 <style>
 :root{
-  --ground:#F5F2EA; --surface:#FFFDF8; --surface-2:#FAF7F0; --line:#E6E0D3; --line-soft:#EFEADF;
-  --navy:#172A48; --navy-2:#223B63; --navy-soft:#E9EEF5;
-  --ink:#16203A; --ink-2:#4B556B; --ink-3:#737B8E;
-  --sage:#1D6B53; --sage-2:#165441; --sage-soft:#E4F3EC;
-  --accent:#C86D44; --accent-soft:#FBECE4;
-  --gold:#B8862D; --gold-soft:#FBF1DB; --gold-bright:#E8B04A;
-  --danger:#B4342F; --danger-soft:#FDECEB;
-  --serif:"Iowan Old Style","Palatino Linotype","Charter",Georgia,"Songti SC","STSong",serif;
-  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --ground:#F7F8FA; --surface:#FFFFFF; --surface-2:#F0F1F4; --line:#D6D8DA; --line-soft:#E8EAED;
+  --navy:#1865F2; --navy-2:#1152CC; --navy-soft:#EBF3FF;
+  --ink:#21242C; --ink-2:#525760; --ink-3:#6E737D;
+  --sage:#008A6E; --sage-2:#007059; --sage-soft:#E6F7F2;
+  --accent:#C75000; --accent-soft:#FFF3E8;
+  --gold:#B45309; --gold-soft:#FEF3C7; --gold-bright:#D97706;
+  --danger:#C5221F; --danger-soft:#FEECEB;
+  --serif:Georgia,"Times New Roman","Songti SC",serif;
+  --sans:"Lato",-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Hiragino Sans GB","Segoe UI","Microsoft YaHei",sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
-  --shadow-sm:0 1px 2px rgba(23,42,72,.04),0 4px 12px -6px rgba(23,42,72,.08);
-  --r-md:15px; --r-sm:9px;
-}
-@media (prefers-color-scheme:dark){
-  :root{
-    --ground:#11161F; --surface:#19202C; --surface-2:#222B3A; --line:#303B4F; --line-soft:#263042;
-    --navy:#8FB0E0; --navy-2:#A6C2EB; --navy-soft:#1F2D44;
-    --ink:#EDF1F7; --ink-2:#B4BECE; --ink-3:#8692A6;
-    --sage:#38C6A8; --sage-2:#2BA88D; --sage-soft:#14332C;
-    --accent:#EA8E63; --accent-soft:#3B241A;
-    --gold:#E8B04A; --gold-soft:#382C13; --gold-bright:#F2C46D;
-    --danger:#F87171; --danger-soft:#3B1C1E;
-    --shadow-sm:0 1px 2px rgba(0,0,0,.35),0 6px 16px -6px rgba(0,0,0,.45);
-  }
+  --shadow-sm:0 1px 3px rgba(33,36,44,.06);
+  --r-md:8px; --r-sm:6px;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--ground);color:var(--ink);font:400 15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
 button,input,select{font:inherit;color:inherit}
 button,input[type=number],select{min-height:38px}
-:focus-visible{outline:2.5px solid var(--gold);outline-offset:2px;border-radius:var(--r-sm)}
+:focus-visible{outline:2.5px solid var(--navy);outline-offset:2px;border-radius:var(--r-sm)}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
 
 .sim-nav{background:var(--surface);border-bottom:1px solid var(--line);padding:8px 18px}
-.sim-nav-inner{max-width:1240px;margin:0 auto;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sim-nav-inner{max-width:1160px;margin:0 auto;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .sim-nav a,.sim-nav strong{padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap}
+.sim-nav a.sim-back{color:var(--navy);border:1px solid var(--line);border-radius:6px;margin-right:6px;font-weight:700}
+.sim-nav a.sim-back:hover{background:var(--navy-soft);border-color:var(--navy);color:var(--navy)}
 .sim-nav a{color:var(--ink-2);border:1px solid transparent}
 .sim-nav a:hover{background:var(--surface-2);border-color:var(--line);color:var(--ink)}
-.sim-nav strong{background:#172A48;color:#fff;border:1px solid #172A48}
-@media(prefers-color-scheme:dark){.sim-nav strong{background:var(--sage);color:#0E161B;border-color:var(--sage)}}
+.sim-nav strong{background:var(--navy);color:#fff;border:1px solid var(--navy)}
 .in-embed .sim-nav{display:none}
 
-.wrap{max-width:1240px;margin:0 auto;padding:20px 18px 46px}
-
-header.top{padding-bottom:16px;border-bottom:2px solid var(--line);margin-bottom:20px}
+.wrap{max-width:1160px;margin:0 auto;padding:18px 18px 40px}
+header.top{padding-bottom:14px;border-bottom:1px solid var(--line);margin-bottom:18px}
 .head-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
-.kicker{font:700 11.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 8px}
-h1{font:700 clamp(24px,3.8vw,38px)/1.12 var(--serif);margin:0;letter-spacing:-.02em}
-h1 em{font-style:italic;color:var(--sage)}
-.sub{margin:10px 0 0;color:var(--ink-2);font-size:15px;max-width:820px}
+.kicker{font:700 11.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--navy);margin:0 0 6px}
+h1{font:800 clamp(24px,3.6vw,34px)/1.18 var(--sans);margin:0;letter-spacing:-.02em}
+h1 em{font-style:normal;color:var(--navy)}
+.sub{margin:7px 0 0;color:var(--ink-2);font-size:14.5px;max-width:780px}
 
 .lang-switch{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px;box-shadow:var(--shadow-sm);flex:none}
 .lang-switch button{min-height:30px;padding:0 12px;border:0;border-radius:999px;background:transparent;color:var(--ink-2);font-size:12.5px;font-weight:700;cursor:pointer}
-.lang-switch button[aria-pressed="true"]{background:#172A48;color:#fff}
-@media(prefers-color-scheme:dark){.lang-switch button[aria-pressed="true"]{background:var(--sage);color:#0E161B}}
+.lang-switch button[aria-pressed="true"]{background:var(--navy);color:#fff}
 
-.formula{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:stretch}
-.chip{background:var(--surface);border:1px solid var(--line);padding:8px 14px;border-radius:12px;font-family:var(--serif);font-size:14px;display:inline-flex;align-items:center;gap:8px;line-height:1.25;box-shadow:var(--shadow-sm)}
+.formula{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px;align-items:center}
+.chip{background:var(--surface);border:1px solid var(--line);padding:5px 12px;border-radius:8px;font-size:13.5px;display:inline-flex;align-items:center;gap:7px;line-height:1.3;box-shadow:var(--shadow-sm)}
 .chip b{color:var(--sage);font-weight:700}
-.chip .chip-label{font-family:var(--sans);font-size:12px;font-weight:700;color:var(--ink-3)}
-.chip .chip-note{font-family:var(--sans);font-size:12.5px;color:var(--ink-2)}
-.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.12;margin:0 2px;font-size:.92em}
-.frac-num{display:block;padding:0 5px 2px;border-bottom:1.5px solid currentColor;white-space:nowrap}
-.frac-den{display:block;padding:2px 5px 0;white-space:nowrap}
+.chip .chip-label{font-size:11.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}
+.chip .math{font-family:var(--serif);font-size:14px}
+.sqrt{display:inline-flex;align-items:center}
+.sqrt-rad{font-size:1.15em;line-height:1;margin-right:1px}
+.sqrt-body{display:inline-block;border-top:1.3px solid currentColor;padding:1px 3px 0}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.1;margin:0 2px;font-size:.88em}
+.frac-num{display:block;padding:0 4px 1px;border-bottom:1.2px solid currentColor;white-space:nowrap}
+.frac-den{display:block;padding:1px 4px 0;white-space:nowrap}
 
-.layout{display:grid;grid-template-columns:360px minmax(0,1fr);gap:18px;align-items:start}
-@media(max-width:960px){.layout{grid-template-columns:1fr}}
+.layout{display:grid;grid-template-columns:340px minmax(0,1fr);gap:18px;align-items:start}
+@media(max-width:920px){.layout{grid-template-columns:1fr}}
 
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:18px 20px;box-shadow:var(--shadow-sm)}
-.card-title{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
-.card-title h2{margin:0;font:700 18px/1.25 var(--serif);color:var(--ink)}
-.card-title h2 .en{font-family:var(--serif);font-style:italic;font-weight:600;color:var(--sage);font-size:15.5px;margin-left:6px}
-.card-sub{margin:0 0 12px;font-size:13px;color:var(--ink-2);line-height:1.45}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:16px 18px;box-shadow:var(--shadow-sm)}
+.card h2{font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;margin:0 0 12px;color:var(--ink-3);font-weight:700}
 
-.mode-pills{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
-.mode-pills button{min-height:38px;padding:4px 6px;border-radius:9px;border:1px solid var(--line);background:var(--surface-2);font-size:12.5px;font-weight:700;color:var(--ink-2);cursor:pointer;line-height:1.2;transition:background-color .15s,border-color .15s,color .15s}
-.mode-pills button[aria-pressed="true"]{background:#172A48;border-color:#172A48;color:#fff}
-@media(prefers-color-scheme:dark){.mode-pills button[aria-pressed="true"]{background:var(--sage);border-color:var(--sage);color:#0E161B}}
+.seg-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px}
+.seg-row.three{grid-template-columns:repeat(3,1fr)}
+.seg-row button{min-height:36px;padding:0 6px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);font-size:12.5px;font-weight:700;color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.seg-row button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
 
-.ctl{margin-bottom:14px}
+.ctl{margin-bottom:13px}
 .label-row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
-.label-row label{font-weight:700;font-size:14px}
-.num-input{width:82px;padding:4px 8px;text-align:right;font-family:var(--mono);font-weight:700;font-size:14px;color:var(--sage);background:var(--sage-soft);border:1px solid transparent;border-radius:999px;min-height:32px}
+.label-row label{font-weight:700;font-size:13.5px}
+.num-input{width:78px;padding:4px 8px;text-align:right;font-family:var(--mono);font-weight:700;font-size:14px;color:var(--sage);background:var(--surface-2);border:1px solid var(--line);border-radius:6px;min-height:34px}
 input[type=range]{width:100%;accent-color:var(--sage);height:28px;margin:0;cursor:pointer}
-.ticks{display:flex;justify-content:space-between;font:600 11.5px/1 var(--mono);color:var(--ink-3);margin-top:2px}
+.ticks{display:flex;justify-content:space-between;font:600 11px/1 var(--mono);color:var(--ink-3);margin-top:1px}
 
 .presets{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
-.presets button{min-height:30px;padding:0 9px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);cursor:pointer;font-weight:700;font-size:12px;color:var(--ink-2);flex:1;white-space:nowrap}
-.presets button.active{background:#172A48;color:#fff;border-color:#172A48}
-@media(prefers-color-scheme:dark){.presets button.active{background:var(--sage);color:#0E161B;border-color:var(--sage)}}
+.presets button{min-height:30px;padding:0 8px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);cursor:pointer;font-weight:700;font-size:12px;color:var(--ink-2);flex:1;white-space:nowrap}
+.presets button.active{background:var(--navy);color:#fff;border-color:var(--navy)}
 
-.conf-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px}
-.conf-card{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 4px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);cursor:pointer;transition:background-color .15s,border-color .15s}
-.conf-card strong{font:800 14.5px/1.2 var(--mono);color:var(--ink)}
-.conf-card span{font:600 11px/1.2 var(--mono);color:var(--ink-3);margin-top:2px}
-.conf-card.active{background:var(--sage-soft);border-color:var(--sage)}
-.conf-card.active strong{color:var(--sage)}
-.conf-card.active span{color:var(--sage)}
-.conf-hint{margin:6px 0 0;font-size:12px;color:var(--sage);font-weight:600}
+.conf-note{margin:6px 0 0;font-size:12px;color:var(--navy);font-weight:600}
+.crit-pill{font:700 12.5px/1 var(--mono);color:var(--navy);background:var(--navy-soft);padding:4px 9px;border-radius:999px}
 
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
-.actions button{border-radius:10px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:700;padding:7px 10px;font-size:13.5px;transition:border-color .15s,background-color .15s}
-.actions button:hover{border-color:var(--sage)}
-.actions button.primary{background:var(--sage);color:#fff;border-color:var(--sage)}
-.actions button.primary:hover{background:var(--sage-2);border-color:var(--sage-2)}
-@media(prefers-color-scheme:dark){.actions button.primary{color:#0E161B}}
-.actions button.auto-btn.running{background:var(--gold-soft);border-color:var(--gold);color:#784E12}
-@media(prefers-color-scheme:dark){.actions button.auto-btn.running{color:var(--gold-bright)}}
-.actions button.reset{color:var(--danger);border-color:#E7C3C1}
-.actions button:disabled{opacity:.45;cursor:default}
-
-.scenario-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line-soft)}
-.scenario-chip{min-height:30px;padding:3px 11px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);font-size:12px;font-weight:600;color:var(--ink-2);cursor:pointer}
-.scenario-chip:hover{border-color:var(--sage);color:var(--sage);background:var(--sage-soft)}
-
-.cond{margin-top:12px;padding:10px 12px;border-radius:10px;font-size:12.5px;line-height:1.5}
-.cond.ok{background:var(--surface-2);border:1px solid var(--line);color:var(--ink-2)}
-.cond.ok b{color:var(--sage)}
-.cond.warn{background:var(--danger-soft);border:1px solid #E7B7B5;color:var(--danger)}
-
-.howto-box{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line-soft);font-size:12.5px;color:var(--ink-2);line-height:1.5}
+.cond{margin-top:12px;padding:9px 11px;border-radius:6px;font-size:12.5px;line-height:1.48}
+.cond.ok{background:var(--sage-soft);color:var(--sage)}
+.cond.warn{background:var(--danger-soft);color:var(--danger)}
+.howto-box{margin-top:10px;padding:9px 11px;border-radius:6px;background:var(--surface-2);border:1px solid var(--line-soft);font-size:12.5px;color:var(--ink-2);line-height:1.48}
 .howto-box b{color:var(--ink)}
 
-/* Right Panel */
-.legend{display:flex;gap:14px;font-size:12.5px;color:var(--ink-2);flex-wrap:wrap;align-items:center}
+/* Right KPI Strip */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:680px){.stats{grid-template-columns:1fr 1fr}}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:11px 13px;box-shadow:var(--shadow-sm)}
+.stat .k{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+.stat .v{font-family:var(--mono);font-size:22px;font-weight:800;line-height:1.2;margin-top:3px}
+.stat .s{font-size:12px;color:var(--ink-2);margin-top:2px}
+.stat.s-power{border-color:rgba(0,138,110,.28);background:var(--sage-soft)}.stat.s-power .v{color:var(--sage)}
+.stat.s-alpha{border-color:rgba(197,34,31,.28);background:var(--danger-soft)}.stat.s-alpha .v{color:var(--danger)}
+.stat.s-blue{border-color:rgba(24,101,242,.25);background:var(--navy-soft)}.stat.s-blue .v{color:var(--navy)}
+
+/* Main Chart Card */
+.chart-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.chart-head h2{margin:0}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--ink-2);flex-wrap:wrap;align-items:center}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .leg-seg{position:relative;display:inline-flex;align-items:center;justify-content:center;width:20px;height:10px}
 .leg-seg::before{content:"";width:20px;height:2.5px;border-radius:2px}
@@ -144,83 +120,87 @@ input[type=range]{width:100%;accent-color:var(--sage);height:28px;margin:0;curso
 .leg-seg.hit::after{content:"";position:absolute;width:6px;height:6px;border-radius:50%;background:var(--sage)}
 .leg-seg.miss::before{background:var(--danger)}
 .leg-seg.miss::after{content:"";position:absolute;width:6px;height:6px;border-radius:50%;background:var(--surface);border:1.8px solid var(--danger)}
-.leg-truth{display:inline-block;width:2px;height:14px;border-left:2px dashed var(--gold)}
+.leg-truth{display:inline-block;width:2px;height:14px;border-left:2px dashed var(--gold-bright)}
 
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
-@media(max-width:720px){.kpis{grid-template-columns:1fr 1fr}}
-.kpi{background:var(--surface-2);border:1px solid var(--line-soft);border-radius:12px;padding:10px 13px}
-.kpi .k{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
-.kpi .v{font-family:var(--mono);font-size:24px;font-weight:800;line-height:1.18;margin-top:3px}
-.kpi .s{font-size:12px;color:var(--ink-2);margin-top:2px}
-.kpi.hit .v{color:var(--sage)}
-.kpi.miss .v{color:var(--danger)}
+.capture-strip{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 12px;border-radius:6px;background:var(--surface-2);border:1px solid var(--line-soft);margin-bottom:10px}
+.progress-track{position:relative;flex:0 0 180px;height:8px;border-radius:999px;background:#DFE3EA}
+@media(max-width:600px){.progress-track{flex:1 1 100%}}
+.progress-fill{height:100%;border-radius:999px;background:var(--sage);transition:width .18s ease}
+.progress-target{position:absolute;top:-3px;bottom:-3px;width:2.5px;border-radius:2px;background:var(--gold-bright);transform:translateX(-50%)}
+.capture-coach{font-size:12.5px;color:var(--ink-2);flex:1;min-width:200px}
+.capture-coach b{color:var(--ink)}
 
-.capture-banner{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;padding:13px 16px;border-radius:12px;background:var(--sage-soft);border:1px solid #C2DFD2;margin-bottom:14px}
-@media(prefers-color-scheme:dark){.capture-banner{border-color:#265E52}}
-@media(max-width:600px){.capture-banner{grid-template-columns:1fr}}
-.capture-rate-val .k{font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--ink-2);text-transform:uppercase}
-.capture-rate-val .v{font:800 34px/1.1 var(--mono);color:var(--sage);margin-top:2px}
-.capture-coach{font-size:13.5px;color:var(--ink);line-height:1.45}
-.progress-track{position:relative;height:9px;border-radius:999px;background:rgba(29,107,83,.16);margin:8px 0 6px;overflow:visible}
-.progress-fill{height:100%;border-radius:999px;background:var(--sage);transition:width .2s ease}
-.progress-target{position:absolute;top:-4px;bottom:-4px;width:3px;border-radius:2px;background:var(--gold);transform:translateX(-50%);box-shadow:0 0 0 1.5px var(--surface)}
-.progress-note{font-size:12px;color:var(--ink-2)}
+canvas#chart{width:100%;height:310px;display:block;cursor:crosshair}
+@media(max-width:640px){canvas#chart{height:260px}}
+.hover-tip{margin-top:4px;min-height:20px;font:600 12px/1.4 var(--mono);color:var(--ink-2)}
+.empty-note{text-align:center;color:var(--ink-2);font-size:13px;padding:10px;background:var(--surface-2);border:1px dashed var(--line);border-radius:6px;margin-top:6px}
 
-canvas#chart{width:100%;height:420px;display:block;cursor:crosshair}
-@media(max-width:640px){canvas#chart{height:340px}}
-.hover-tip{margin-top:6px;min-height:22px;font:600 12.5px/1.4 var(--mono);color:var(--ink-2)}
-.chart-cap{margin:4px 0 0;font-size:12.5px;color:var(--ink-2)}
-.empty-note{text-align:center;color:var(--ink-2);font-size:13.5px;padding:12px;background:var(--surface-2);border:1px dashed var(--line);border-radius:10px;margin-top:8px}
+/* Horizontal Action Bar inside Chart Card */
+.sim-bar{margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 12px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;box-shadow:var(--shadow-sm);min-height:36px;white-space:nowrap}
+.btn:hover{border-color:var(--navy)}
+.btn.primary{background:var(--sage);color:#fff;border-color:var(--sage)}
+.btn.primary:hover{background:var(--sage-2);border-color:var(--sage-2)}
+.btn.auto-btn.running{background:var(--gold-soft);border-color:var(--gold-bright);color:var(--gold)}
+.btn.reset{color:var(--danger);border-color:#F1C4C3}
+.btn.csv-btn{margin-left:auto;font-size:12.5px;color:var(--ink-2)}
+.btn:disabled{opacity:.45;cursor:default}
 
-/* Lower Row */
-.lower-grid{display:grid;grid-template-columns:1.18fr 0.82fr;gap:18px;margin-top:18px;align-items:start}
-@media(max-width:960px){.lower-grid{grid-template-columns:1fr}}
-.stack{display:flex;flex-direction:column;gap:18px}
+/* 4-column Scenario Cards directly under Chart Card */
+.presets-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+@media(max-width:860px){.presets-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.presets-grid{grid-template-columns:1fr}}
+.preset-btn{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:10px 12px;text-align:left;cursor:pointer;box-shadow:var(--shadow-sm);min-height:auto}
+.preset-btn:hover{border-color:var(--navy)}
+.preset-btn strong{display:block;font-size:13px;margin-bottom:2px;color:var(--ink)}
+.preset-btn span{font-size:12px;color:var(--ink-2);line-height:1.35;display:block}
 
-canvas#convChart{width:100%;height:210px;display:block}
+/* Lower 2-column Analysis & Pedagogy */
+.sub-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;align-items:start}
+@media(max-width:920px){.sub-grid{grid-template-columns:1fr}}
+.stack{display:flex;flex-direction:column;gap:16px}
 
-.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line-soft);border-radius:10px}
-table.latest-tbl{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
-table.latest-tbl th{background:var(--surface-2);color:var(--ink-3);font-size:11.5px;font-weight:700;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
-table.latest-tbl td{padding:8px 10px;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+canvas#convChart{width:100%;height:190px;display:block}
+.conv-sub{margin:-4px 0 8px;font-size:12.5px;color:var(--ink-2)}
+
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line-soft);border-radius:6px}
+table.latest-tbl{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+table.latest-tbl th{background:var(--surface-2);color:var(--ink-3);font-size:11px;font-weight:700;text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.latest-tbl td{padding:7px 9px;border-bottom:1px solid var(--line-soft);white-space:nowrap}
 table.latest-tbl tbody tr:last-child td{border-bottom:0}
 table.latest-tbl tbody tr.is-hover{background:var(--gold-soft)}
-.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:700}
 .badge.hit{background:var(--sage-soft);color:var(--sage)}
 .badge.miss{background:var(--danger-soft);color:var(--danger)}
 
-.tpl-box{background:var(--surface-2);border:1px solid var(--line);border-left:3.5px solid var(--sage);border-radius:0 11px 11px 0;padding:11px 14px;margin-bottom:10px;font-size:13.5px;line-height:1.55}
-.tpl-box.level-box{border-left-color:var(--gold)}
-.tpl-box b{display:block;color:var(--ink);margin-bottom:4px;font-size:13px}
+.tpl-box{background:var(--surface-2);border-left:3.5px solid var(--navy);border-radius:0 6px 6px 0;padding:10px 13px;margin-bottom:10px;font-size:13.5px;line-height:1.55;color:var(--ink)}
+.tpl-box.level-box{border-left-color:var(--sage)}
+.tpl-title{font-weight:700;font-size:13px;color:var(--ink);margin-bottom:4px}
+.tpl-box b,.tpl-box strong{display:inline;color:var(--navy);font-weight:700}
+.tpl-box.level-box b{color:var(--sage)}
 .tpl-en{display:block;margin-top:4px;color:var(--ink-2);font-size:12.5px}
 
-.interp-list{margin:10px 0 12px;padding-left:18px;font-size:13.5px;color:var(--ink-2);line-height:1.6}
-.interp-list li{margin-bottom:6px}
-.interp-list li b{color:var(--ink)}
-.bad-quote{color:var(--danger);text-decoration:line-through;font-weight:600}
+.cheat-list{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--ink-2);line-height:1.6}
+.cheat-list li{margin-bottom:5px}
+.cheat-list b{color:var(--ink)}
+.bad-quote{color:var(--danger);text-decoration:line-through;font-weight:700}
 
-.z-ref-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
-.z-ref-btn{display:flex;flex-direction:column;align-items:center;padding:8px 4px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);cursor:pointer;transition:border-color .15s,background-color .15s}
-.z-ref-btn span{font-size:12px;color:var(--ink-2);font-weight:600}
-.z-ref-btn strong{font:800 16px/1.25 var(--mono);color:var(--sage);margin-top:2px}
-.z-ref-btn.active{background:var(--sage-soft);border-color:var(--sage)}
-.z-ref-note{margin:7px 0 0;font-size:12px;color:var(--ink-3);text-align:center}
-
-.try-item{border:1px solid var(--line-soft);border-radius:10px;background:var(--surface-2);margin-bottom:8px;overflow:hidden}
+.try-item{border:1px solid var(--line-soft);border-radius:6px;background:var(--surface-2);margin-bottom:7px;overflow:hidden}
 .try-item:last-child{margin-bottom:0}
-.try-item summary{cursor:pointer;padding:10px 13px;font-size:13.5px;font-weight:700;color:var(--ink);list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.try-item summary{cursor:pointer;padding:9px 12px;font-size:13px;font-weight:700;color:var(--ink);list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .try-item summary::-webkit-details-marker{display:none}
-.try-item summary::after{content:"+";font:700 16px/1 var(--mono);color:var(--sage);flex:none}
+.try-item summary::after{content:"+";font:700 15px/1 var(--mono);color:var(--navy);flex:none}
 .try-item[open] summary::after{content:"−"}
-.try-ans{padding:0 13px 12px;font-size:13px;color:var(--ink-2);line-height:1.55;border-top:1px solid var(--line-soft);padding-top:9px}
+.try-ans{padding:8px 12px 11px;font-size:12.5px;color:var(--ink-2);line-height:1.55;border-top:1px solid var(--line-soft)}
 
-footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-3);text-align:center}
+footer{margin-top:18px;font-size:12.5px;color:var(--ink-3);text-align:center}
 .kbd{font-family:var(--mono);font-size:11.5px;background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
 </style>
 </head>
 <body>
 <nav class="sim-nav" aria-label="统计推断模拟器">
   <div class="sim-nav-inner">
+    <a class="sim-back" href="../../index.html">← 返回互动实验</a>
     <strong aria-current="page" data-i18n="nav_ci">置信区间捕获率</strong>
     <a href="errors-power.html" data-i18n="nav_ep">两类错误与功效</a>
     <a href="t-vs-z.html" data-i18n="nav_tz">t 分布 vs 正态 z</a>
@@ -232,9 +212,9 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
   <header class="top">
     <div class="head-row">
       <div>
-        <p class="kicker" data-i18n="kicker">AP &amp; REGULAR STATISTICS · CONFIDENCE INTERVALS &amp; LEVEL</p>
-        <h1 data-i18n-html="h1">置信区间与置信水平模拟器 <em>Confidence Interval &amp; Level</em></h1>
-        <p class="sub" data-i18n-html="sub">批量抽取随机样本并构建置信区间，直观对比<b>「单个置信区间（由样本算出、可能命中也可能失手）」</b>与<b>「置信水平（重复抽样时捕获真值的长期比例）」</b>。每抽一个样本就得到一条区间——有的套住真值，有的套不住；切换置信水平时，同一批区间会原地变宽或变窄。</p>
+        <p class="kicker" data-i18n="kicker">AP &amp; REGULAR STATISTICS · UNITS 3–4 · CONFIDENCE INTERVALS</p>
+        <h1 data-i18n-html="h1">置信区间与置信水平 <em>Confidence Interval &amp; Level</em></h1>
+        <p class="sub" data-i18n-html="sub">批量抽取随机样本并构建置信区间，直观对比<b>「单个置信区间（由样本算出、要么命中要么失手）」</b>与<b>「置信水平（重复抽样时的长期捕获率）」</b>。</p>
       </div>
       <div class="lang-switch" role="group" aria-label="Language toggle">
         <button type="button" id="langZh" aria-pressed="true">中文</button>
@@ -245,14 +225,11 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
   </header>
 
   <div class="layout">
-    <!-- Left Settings Sidebar -->
+    <!-- Left Control Panel -->
     <section class="card" aria-label="参数设置">
-      <div class="card-title">
-        <h2 data-i18n-html="sec_mode">参数设置 <span class="en">Settings</span></h2>
-      </div>
-      <p class="card-sub" data-i18n="sec_mode_sub">先选区间类型与总体参数；切换「置信水平 C」时保留当前样本，方便观察区间原地伸缩与捕获率变化。</p>
+      <h2 data-i18n="sec_mode">1 · 区间类型与参数</h2>
 
-      <div class="mode-pills" role="group" aria-label="区间类型">
+      <div class="seg-row three" role="group" aria-label="区间类型">
         <button type="button" data-mode="prop" aria-pressed="true" data-i18n="m_prop">比例 p (z)</button>
         <button type="button" data-mode="mean-t" aria-pressed="false" data-i18n="m_mt">均值 μ (t)</button>
         <button type="button" data-mode="mean-z" aria-pressed="false" data-i18n="m_mz">均值 μ (已知 σ)</button>
@@ -260,7 +237,7 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
 
       <div id="propCtrls">
         <div class="ctl">
-          <div class="label-row"><label for="pRange" data-i18n="lbl_p">总体真值 p</label><input type="number" class="num-input" id="pNum" min="0.05" max="0.95" step="0.01" value="0.50"></div>
+          <div class="label-row"><label for="pRange" data-i18n="lbl_p">真实总体比例 p</label><input type="number" class="num-input" id="pNum" min="0.05" max="0.95" step="0.01" value="0.50"></div>
           <input type="range" id="pRange" min="0.05" max="0.95" step="0.01" value="0.50">
           <div class="ticks"><span>0.05</span><span>0.50</span><span>0.95</span></div>
         </div>
@@ -268,7 +245,7 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
 
       <div id="meanCtrls" hidden>
         <div class="ctl">
-          <div class="label-row"><label for="muRange" data-i18n="lbl_mu">总体真值 μ</label><input type="number" class="num-input" id="muNum" min="0" max="100" step="1" value="50"></div>
+          <div class="label-row"><label for="muRange" data-i18n="lbl_mu">真实总体均值 μ</label><input type="number" class="num-input" id="muNum" min="0" max="100" step="1" value="50"></div>
           <input type="range" id="muRange" min="0" max="100" step="1" value="50">
           <div class="ticks"><span>0</span><span>50</span><span>100</span></div>
         </div>
@@ -282,7 +259,6 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
       <div class="ctl">
         <div class="label-row"><label for="nRange" data-i18n="lbl_n">样本量 n</label><input type="number" class="num-input" id="nNum" min="5" max="1000" step="1" value="50"></div>
         <input type="range" id="nRange" min="5" max="500" step="5" value="50">
-        <div class="ticks"><span>5</span><span>100</span><span>300</span><span>500</span></div>
         <div class="presets" id="nPresets">
           <button type="button" data-n="15">15</button>
           <button type="button" data-n="30">30</button>
@@ -295,87 +271,78 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
       <div class="ctl">
         <div class="label-row">
           <label data-i18n="lbl_conf">置信水平 C</label>
-          <span class="mono" id="critLbl" style="font-weight:700;color:var(--sage);background:var(--sage-soft);padding:2px 10px;border-radius:999px;font-size:13px">z* = 1.960</span>
+          <span class="crit-pill" id="critLbl">z* = 1.960</span>
         </div>
-        <div class="conf-cards" id="cPresets">
-          <button type="button" class="conf-card" data-c="0.80"><strong>80%</strong><span data-cv="0.80">1.282</span></button>
-          <button type="button" class="conf-card" data-c="0.90"><strong>90%</strong><span data-cv="0.90">1.645</span></button>
-          <button type="button" class="conf-card active" data-c="0.95"><strong>95%</strong><span data-cv="0.95">1.960</span></button>
-          <button type="button" class="conf-card" data-c="0.99"><strong>99%</strong><span data-cv="0.99">2.576</span></button>
+        <div class="presets" id="cPresets">
+          <button type="button" data-c="0.80">80%</button>
+          <button type="button" data-c="0.90">90%</button>
+          <button type="button" data-c="0.95" class="active">95%</button>
+          <button type="button" data-c="0.99">99%</button>
         </div>
-        <p class="conf-hint" id="confResizeHint" data-i18n="conf_hint">切换置信水平时，已有区间将原地伸缩（不清空样本）</p>
+        <p class="conf-note" data-i18n="conf_hint">切换 C 会让已有区间原地变宽/变窄（不清空样本）</p>
       </div>
 
-      <div class="actions">
-        <button type="button" id="btn1" data-i18n="btn_1">抽 1 个区间</button>
-        <button type="button" id="btn10" data-i18n="btn_10">抽 10 个</button>
-        <button type="button" class="primary" id="btn100" data-i18n="btn_100">抽 100 个</button>
-        <button type="button" class="auto-btn" id="btnAuto" data-i18n="btn_auto_start">▶ 自动连跑</button>
-        <button type="button" id="btn1000">+ 1,000</button>
-        <button type="button" id="btnCsv" disabled data-i18n="btn_csv">导出 CSV</button>
-        <button type="button" class="reset" id="btnReset" style="grid-column:span 2" data-i18n="btn_reset">清空重来</button>
-      </div>
-
-      <div class="scenario-row" id="scenarioPresets" aria-label="快捷实验预设"></div>
       <div class="cond ok" id="condBox"></div>
       <div class="howto-box" id="howtoBox"></div>
     </section>
 
-    <!-- Right Main Plot -->
-    <section class="card" aria-label="置信区间捕获图">
-      <div class="card-title">
-        <h2 data-i18n-html="chart_title">区间图 <span class="en">Do they capture truth?</span></h2>
-        <div class="legend">
-          <span><i class="leg-seg hit" aria-hidden="true"></i><span data-i18n="leg_hit">捕获 Captured</span></span>
-          <span><i class="leg-seg miss" aria-hidden="true"></i><span data-i18n="leg_miss">未捕获 Missed</span></span>
-          <span><i class="leg-truth" aria-hidden="true"></i><span id="legTruth">真值 p</span></span>
-        </div>
+    <!-- Right Main Workspace -->
+    <div>
+      <div class="stats">
+        <div class="stat s-power"><div class="k" data-i18n="st_rate">实际捕获率 Capture Rate</div><div class="v" id="stRate">—</div><div class="s" id="stRateSub">目标 95% · 0 / 0</div></div>
+        <div class="stat s-alpha"><div class="k" data-i18n="st_miss">未捕获 Missed</div><div class="v" id="stMiss">0</div><div class="s" id="stMissSub">不含真值</div></div>
+        <div class="stat"><div class="k" data-i18n="st_width">平均宽度 Width</div><div class="v" id="stWidth">—</div><div class="s" id="stME">2 × ME</div></div>
+        <div class="stat s-blue"><div class="k" id="stCritK">临界值 z*</div><div class="v" id="stCrit">1.960</div><div class="s" id="stCritSub">C = 95% · n = 50</div></div>
       </div>
 
-      <div class="kpis">
-        <div class="kpi"><div class="k" data-i18n="st_tot">已构建区间 TOTAL</div><div class="v" id="stTotal">0</div><div class="s" id="stTotSub">0 个样本</div></div>
-        <div class="kpi hit"><div class="k" data-i18n="st_hit">捕获 CAPTURED</div><div class="v" id="stHits">0</div><div class="s" id="stHitSub">包含真值</div></div>
-        <div class="kpi miss"><div class="k" data-i18n="st_miss">未捕获 MISSED</div><div class="v" id="stMiss">0</div><div class="s" id="stMissSub">不含真值</div></div>
-        <div class="kpi"><div class="k" data-i18n="st_width">平均宽度 WIDTH</div><div class="v" id="stWidth">—</div><div class="s" id="stME">2 × 边际误差</div></div>
-      </div>
-
-      <div class="capture-banner">
-        <div class="capture-rate-val">
-          <div class="k" data-i18n="st_rate">实际捕获率 CAPTURE RATE</div>
-          <div class="v" id="stRate">—</div>
+      <section class="card">
+        <div class="chart-head">
+          <h2 id="chartTitle">区间捕获图 · 最近 60 个置信区间（竖虚线 = 真值）</h2>
+          <div class="legend">
+            <span><i class="leg-seg hit" aria-hidden="true"></i><span data-i18n="leg_hit">捕获</span></span>
+            <span><i class="leg-seg miss" aria-hidden="true"></i><span data-i18n="leg_miss">未捕获</span></span>
+            <span><i class="leg-truth" aria-hidden="true"></i><span id="legTruth">真值 p</span></span>
+          </div>
         </div>
-        <div class="capture-coach">
-          <div id="coachText"></div>
+
+        <div class="capture-strip">
           <div class="progress-track" aria-hidden="true">
             <div class="progress-fill" id="progressFill" style="width:0%"></div>
             <div class="progress-target" id="progressTarget" style="left:95%"></div>
           </div>
-          <div class="progress-note" id="progressNote"></div>
+          <div class="capture-coach" id="coachText"></div>
         </div>
-      </div>
 
-      <canvas id="chart" width="780" height="420"></canvas>
-      <div class="hover-tip" id="hoverTip"></div>
-      <div class="empty-note" id="emptyNote" hidden></div>
-      <p class="chart-cap" id="chartCap"></p>
-    </section>
+        <canvas id="chart" width="760" height="310"></canvas>
+        <div class="hover-tip" id="hoverTip"></div>
+        <div class="empty-note" id="emptyNote" hidden></div>
+
+        <div class="sim-bar">
+          <button type="button" class="btn" id="btn1" data-i18n="btn_1">抽 1 个</button>
+          <button type="button" class="btn" id="btn10" data-i18n="btn_10">抽 10 个</button>
+          <button type="button" class="btn primary" id="btn100" data-i18n="btn_100">抽 100 个</button>
+          <button type="button" class="btn auto-btn" id="btnAuto" data-i18n="btn_auto_start">▶ 自动连跑</button>
+          <button type="button" class="btn" id="btn1000">+ 1,000</button>
+          <button type="button" class="btn reset" id="btnReset" data-i18n="btn_reset">清空</button>
+          <button type="button" class="btn csv-btn" id="btnCsv" disabled data-i18n="btn_csv">导出 CSV</button>
+        </div>
+      </section>
+
+      <div class="presets-grid" id="scenarioPresets" aria-label="快捷对比场景"></div>
+    </div>
   </div>
 
   <!-- Lower Analysis & Pedagogy Grid -->
-  <div class="lower-grid">
+  <div class="sub-grid">
     <div class="stack">
       <section class="card" aria-label="捕获率收敛曲线">
-        <div class="card-title">
-          <h2 data-i18n-html="conv_title">捕获率如何收敛 <span class="en">Convergence</span></h2>
-        </div>
-        <p class="card-sub" id="convSub"></p>
-        <canvas id="convChart" width="660" height="210"></canvas>
+        <h2 data-i18n="conv_title">捕获率收敛曲线（置信水平 = 长期捕获率）</h2>
+        <p class="conv-sub" id="convSub"></p>
+        <canvas id="convChart" width="540" height="190"></canvas>
       </section>
 
       <section class="card" aria-label="最近12个置信区间">
-        <div class="card-title">
-          <h2 data-i18n-html="tbl_title">最近 12 个区间 <span class="en">Latest Intervals</span></h2>
-        </div>
+        <h2 data-i18n="tbl_title">最近 12 个区间明细</h2>
         <div class="table-wrap">
           <table class="latest-tbl">
             <thead id="latestHead"></thead>
@@ -387,28 +354,21 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
 
     <div class="stack">
       <section class="card" aria-label="置信区间与置信水平解读">
-        <div class="card-title">
-          <h2 id="interpTitle">怎么理解置信区间与 95% 置信水平？ <span class="en">Interpretation</span></h2>
-        </div>
+        <h2 id="interpTitle">置信区间 vs 置信水平（标准表述与误区）</h2>
         <div class="tpl-box" id="tplInterval"></div>
         <div class="tpl-box level-box" id="tplLevel"></div>
-        <ul class="interp-list" id="interpList"></ul>
-        <div class="z-ref-grid" id="zRefGrid"></div>
-        <p class="z-ref-note" id="zRefNote"></p>
+        <ul class="cheat-list" id="interpList"></ul>
       </section>
 
       <section class="card" aria-label="课堂探究">
-        <div class="card-title">
-          <h2 data-i18n-html="try_title">课堂探究 <span class="en">Try it</span></h2>
-        </div>
-        <p class="card-sub" data-i18n="try_sub">先预测，再动手验证——每题都可以直接用左侧模拟器试出答案。</p>
+        <h2 data-i18n="try_title">课堂探究（先预测，再动手验证）</h2>
         <div id="tryList"></div>
       </section>
     </div>
   </div>
 
   <footer>
-    <span data-i18n="foot">注：比例模式从 Bin(n, p) 独立抽样并按课堂标准公式构建区间；均值模式从正态总体 N(μ, σ²) 抽样，可切换 t 区间与已知 σ 的 z 区间对比。按</span> <span class="kbd">Space</span> <span data-i18n="foot2">抽 1 个区间。</span>
+    <span data-i18n="foot">注：比例模式从 Bin(n, p) 独立抽样，均值模式从正态总体 N(μ, σ²) 抽样对比 t 区间与 z 区间；按</span> <span class="kbd">Space</span> <span data-i18n="foot2">抽 1 个区间。</span>
   </footer>
 </div>
 
@@ -566,9 +526,7 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
       stopAuto();
       return;
     }
-    if(state.items.length >= 5000){
-      state.items = [];
-    }
+    if(state.items.length >= 5000) state.items = [];
     var btn = $("btnAuto");
     btn.classList.add("running");
     btn.textContent = t("btn_auto_pause");
@@ -604,53 +562,45 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
   var I18N = {
     zh:{
       nav_ci:"置信区间捕获率", nav_ep:"两类错误与功效", nav_tz:"t 分布 vs 正态 z", nav_chi:"卡方列联表检验",
-      kicker:"AP & REGULAR STATISTICS · CONFIDENCE INTERVALS & LEVEL",
-      h1:"置信区间与置信水平模拟器 <em>Confidence Interval &amp; Level</em>",
-      sub:"批量抽取随机样本并构建置信区间，直观对比<b>「单个置信区间（由样本算出、可能命中也可能失手）」</b>与<b>「置信水平（重复抽样时捕获真值的长期比例）」</b>。每抽一个样本就得到一条区间——有的套住真值，有的套不住；切换置信水平时，同一批区间会原地变宽或变窄。",
-      sec_mode:'参数设置 <span class="en">Settings</span>',
-      sec_mode_sub:"先选区间类型与总体参数；切换「置信水平 C」时保留当前样本，方便观察区间原地伸缩与捕获率变化。",
+      kicker:"AP & REGULAR STATISTICS · UNITS 3–4 · CONFIDENCE INTERVALS",
+      h1:"置信区间与置信水平 <em>Confidence Interval &amp; Level</em>",
+      sub:"批量抽取随机样本并构建置信区间，直观对比<b>「单个置信区间（由样本算出、要么命中要么失手）」</b>与<b>「置信水平（重复抽样时的长期捕获率）」</b>。",
+      sec_mode:"1 · 区间类型与参数",
       m_prop:"比例 p (z)", m_mt:"均值 μ (t)", m_mz:"均值 μ (已知 σ)",
-      lbl_p:"总体真值 p", lbl_mu:"总体真值 μ", lbl_sd:"总体标准差 σ", lbl_n:"样本量 n", lbl_conf:"置信水平 C",
-      conf_hint:"切换置信水平时，已有区间将原地伸缩（不清空样本）",
-      btn_1:"抽 1 个区间", btn_10:"抽 10 个", btn_100:"抽 100 个",
-      btn_auto_start:"▶ 自动连跑", btn_auto_pause:"⏸ 暂停连跑",
-      btn_reset:"清空重来", btn_csv:"导出 CSV",
-      chart_title:'区间图 <span class="en">Do they capture truth?</span>',
-      leg_hit:"捕获 Captured", leg_miss:"未捕获 Missed",
-      st_tot:"已构建区间 TOTAL", st_hit:"捕获 CAPTURED", st_miss:"未捕获 MISSED", st_width:"平均宽度 WIDTH",
-      st_rate:"实际捕获率 CAPTURE RATE",
-      conv_title:'捕获率如何收敛 <span class="en">Convergence</span>',
-      tbl_title:'最近 12 个区间 <span class="en">Latest Intervals</span>',
-      try_title:'课堂探究 <span class="en">Try it</span>',
-      try_sub:"先预测，再动手验证——每题都可以直接用左侧模拟器试出答案。",
-      foot:"注：比例模式从 Bin(n, p) 独立抽样并按课堂标准公式构建区间；均值模式从正态总体 N(μ, σ²) 抽样，可切换 t 区间与已知 σ 的 z 区间对比。按",
+      lbl_p:"真实总体比例 p", lbl_mu:"真实总体均值 μ", lbl_sd:"总体标准差 σ", lbl_n:"样本量 n", lbl_conf:"置信水平 C",
+      conf_hint:"切换 C 会让已有区间原地变宽/变窄（不清空样本）",
+      btn_1:"抽 1 个", btn_10:"抽 10 个", btn_100:"抽 100 个",
+      btn_auto_start:"▶ 自动连跑", btn_auto_pause:"⏸ 暂停",
+      btn_reset:"清空", btn_csv:"导出 CSV",
+      leg_hit:"捕获", leg_miss:"未捕获",
+      st_rate:"实际捕获率 Capture Rate", st_miss:"未捕获 Missed", st_width:"平均宽度 Width",
+      conv_title:"捕获率收敛曲线（置信水平 = 长期捕获率）",
+      tbl_title:"最近 12 个区间明细",
+      try_title:"课堂探究（先预测，再动手验证）",
+      foot:"注：比例模式从 Bin(n, p) 独立抽样，均值模式从正态总体 N(μ, σ²) 抽样对比 t 区间与 z 区间；按",
       foot2:"抽 1 个区间。",
-      empty:"当前还没有抽样——点击「抽 1 个区间」「抽 100 个」或「▶ 自动连跑」开始模拟。"
+      empty:"尚未抽样 — 点击「抽 1 个」「抽 100 个」或「▶ 自动连跑」开始。"
     },
     en:{
       nav_ci:"CI Capture Simulator", nav_ep:"Errors & Power", nav_tz:"t vs. Normal z", nav_chi:"Chi-Square Table",
-      kicker:"AP & REGULAR STATISTICS · CONFIDENCE INTERVALS & LEVEL",
+      kicker:"AP & REGULAR STATISTICS · UNITS 3–4 · CONFIDENCE INTERVALS",
       h1:"Confidence Interval &amp; Level <em>Simulator</em>",
-      sub:"Draw repeated random samples to clearly distinguish a <b>single Confidence Interval (which either captures or misses the fixed parameter)</b> from the <b>Confidence Level (the long-run capture rate of the method)</b>. Switching the confidence level resizes your existing intervals in place.",
-      sec_mode:'Settings <span class="en">Parameters</span>',
-      sec_mode_sub:"Choose the interval type and true parameter. Changing C resizes your current intervals in place without clearing samples.",
+      sub:"Draw repeated samples to distinguish a <b>single Confidence Interval (hits or misses the fixed truth)</b> from the <b>Confidence Level (long-run capture rate of the method)</b>.",
+      sec_mode:"1 · Interval Type & Parameters",
       m_prop:"Prop p (z)", m_mt:"Mean μ (t)", m_mz:"Mean μ (known σ)",
       lbl_p:"True proportion p", lbl_mu:"True mean μ", lbl_sd:"Population SD σ", lbl_n:"Sample size n", lbl_conf:"Confidence level C",
-      conf_hint:"Changing C resizes all existing intervals in place (keeps samples)",
+      conf_hint:"Changing C resizes existing intervals in place (keeps samples)",
       btn_1:"Draw 1", btn_10:"Draw 10", btn_100:"Draw 100",
       btn_auto_start:"▶ Auto-Run", btn_auto_pause:"⏸ Pause",
       btn_reset:"Reset", btn_csv:"Export CSV",
-      chart_title:'Interval Plot <span class="en">Do they capture truth?</span>',
       leg_hit:"Captured", leg_miss:"Missed",
-      st_tot:"Intervals Built", st_hit:"Captured", st_miss:"Missed", st_width:"Mean Width",
-      st_rate:"Actual Capture Rate",
-      conv_title:'How Capture Rate Converges <span class="en">Convergence</span>',
-      tbl_title:'Latest 12 Intervals <span class="en">Details</span>',
-      try_title:'Classroom Inquiry <span class="en">Try it</span>',
-      try_sub:"Predict first, then verify directly using the simulator controls.",
-      foot:"Note: Proportion mode draws from Bin(n, p) using the standard Wald CI; Mean modes draw from N(μ, σ²) to compare t-intervals vs. known-σ z-intervals. Press",
+      st_rate:"Capture Rate", st_miss:"Missed", st_width:"Mean Width",
+      conv_title:"Convergence Curve (Confidence Level = Long-Run Rate)",
+      tbl_title:"Latest 12 Intervals",
+      try_title:"Classroom Inquiry (Predict First, Then Verify)",
+      foot:"Note: Prop mode draws from Bin(n, p); Mean modes draw from N(μ, σ²) to compare t vs. known-σ z intervals; press",
       foot2:"to draw 1.",
-      empty:"No intervals yet — click Draw 1, Draw 100, or Auto-Run to start."
+      empty:"No intervals yet — click Draw 1, Draw 100, or Auto-Run to begin."
     }
   };
   function t(k){ return (I18N[state.lang] && I18N[state.lang][k]) || I18N.zh[k] || k; }
@@ -666,40 +616,40 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
     var truthHtml = "";
 
     if(state.mode === "prop"){
-      formulaHtml = '<i>p̂</i> ± <i>z*</i> <math><msqrt><mfrac><mrow><mover><mi>p</mi><mo>^</mo></mover><mo>(</mo><mn>1</mn><mo>−</mo><mover><mi>p</mi><mo>^</mo></mover><mo>)</mo></mrow><mi>n</mi></mfrac></msqrt></math>';
-      truthHtml = '<i>p</i> = <b>' + state.p.toFixed(2) + '</b> <span class="chip-note">' + (zh ? '（总体真实比例，现实中未知）' : '(true proportion, unknown in practice)') + '</span>';
+      formulaHtml = '<span class="math"><i>p̂</i> ± <i>z*</i> <span class="sqrt"><span class="sqrt-rad">√</span><span class="sqrt-body"><span class="frac"><span class="frac-num"><i>p̂</i>(1 − <i>p̂</i>)</span><span class="frac-den"><i>n</i></span></span></span></span></span>';
+      truthHtml = '<span class="math"><i>p</i> = <b>' + state.p.toFixed(2) + '</b></span>';
     } else if(state.mode === "mean-t"){
-      formulaHtml = '<i>x̄</i> ± <i>t*</i><sub>' + (state.n - 1) + '</sub> · <span class="frac"><span class="frac-num"><i>s</i></span><span class="frac-den"><math><msqrt><mi>n</mi></msqrt></math></span></span>';
-      truthHtml = 'μ = <b>' + state.mu + '</b>, σ = <b>' + state.sd + '</b> <span class="chip-note">' + (zh ? '（总体真实均值与标准差）' : '(true population parameters)') + '</span>';
+      formulaHtml = '<span class="math"><i>x̄</i> ± <i>t*</i><sub>' + (state.n - 1) + '</sub> · <span class="frac"><span class="frac-num"><i>s</i></span><span class="frac-den"><span class="sqrt"><span class="sqrt-rad">√</span><span class="sqrt-body"><i>n</i></span></span></span></span></span>';
+      truthHtml = '<span class="math">μ = <b>' + state.mu + '</b>, σ = <b>' + state.sd + '</b></span>';
     } else {
-      formulaHtml = '<i>x̄</i> ± <i>z*</i> · <span class="frac"><span class="frac-num">σ</span><span class="frac-den"><math><msqrt><mi>n</mi></msqrt></math></span></span>';
-      truthHtml = 'μ = <b>' + state.mu + '</b>, σ = <b>' + state.sd + '</b> <span class="chip-note">' + (zh ? '（总体真实均值与已知标准差）' : '(true mean & known σ)') + '</span>';
+      formulaHtml = '<span class="math"><i>x̄</i> ± <i>z*</i> · <span class="frac"><span class="frac-num">σ</span><span class="frac-den"><span class="sqrt"><span class="sqrt-rad">√</span><span class="sqrt-body"><i>n</i></span></span></span></span></span>';
+      truthHtml = '<span class="math">μ = <b>' + state.mu + '</b>, σ = <b>' + state.sd + '</b></span>';
     }
 
     bar.innerHTML =
-      '<span class="chip"><span class="chip-label">' + (zh ? "公式" : "Formula") + '</span><span>' + formulaHtml + '</span></span>' +
-      '<span class="chip"><span class="chip-label">' + (zh ? "真值" : "Truth") + '</span><span>' + truthHtml + '</span></span>' +
-      '<span class="chip"><span class="chip-label">' + (zh ? "当前设置" : "Settings") + '</span><span class="mono"><b>' + C + '%</b> · ' + sym + ' = ' + cv.toFixed(3) + ' · n = ' + state.n + '</span></span>';
+      '<span class="chip"><span class="chip-label">' + (zh ? "公式" : "Formula") + '</span>' + formulaHtml + '</span>' +
+      '<span class="chip"><span class="chip-label">' + (zh ? "真值" : "Truth") + '</span>' + truthHtml + '</span>' +
+      '<span class="chip"><span class="chip-label">' + (zh ? "设定" : "Setup") + '</span><span class="mono"><b>' + C + '%</b> · ' + sym + '=' + cv.toFixed(3) + ' · n=' + state.n + '</span></span>';
   }
 
-  function renderScenarioChips(){
+  function renderScenarioCards(){
     var row = $("scenarioPresets");
     var zh = state.lang === "zh";
-    var list = state.mode === "prop"
+    var cards = state.mode === "prop"
       ? [
-          { action: "n20", label: zh ? "小样本 n=20" : "Small n=20" },
-          { action: "n300", label: zh ? "大样本 n=300" : "Large n=300" },
-          { action: "p10", label: zh ? "极端 p=0.10" : "Extreme p=0.10" },
-          { action: "c99", label: zh ? "原地改用 99%" : "Resize to 99%" }
+          { action: "n20", title: zh ? "小样本 n = 20" : "Small n = 20", sub: zh ? "n 变小 → SE 变大、区间更宽" : "Smaller n → wider intervals" },
+          { action: "n300", title: zh ? "大样本 n = 300" : "Large n = 300", sub: zh ? "精度提高，区间明显变窄" : "Higher precision, narrower bars" },
+          { action: "p10", title: zh ? "极端比例 p = 0.10" : "Extreme p = 0.10", sub: zh ? "观察 Large Counts 警告与偏移" : "Observe Large Counts warning" },
+          { action: "c99", title: zh ? "原地改用 99%" : "Resize to 99%", sub: zh ? "同批样本变宽，红点翻绿捕获" : "Same samples widen in place" }
         ]
       : [
-          { action: "n15", label: zh ? "小样本 n=15" : "Small n=15" },
-          { action: "n200", label: zh ? "大样本 n=200" : "Large n=200" },
-          { action: "sd25", label: zh ? "高波动 σ=25" : "High SD σ=25" },
-          { action: "c99", label: zh ? "原地改用 99%" : "Resize to 99%" }
+          { action: "n15", title: zh ? "小样本 n = 15" : "Small n = 15", sub: zh ? "df=14，t 区间宽度波动更明显" : "df=14, t-widths vary noticeably" },
+          { action: "n200", title: zh ? "大样本 n = 200" : "Large n = 200", sub: zh ? "4 倍 n 使区间宽度减半" : "4× n halves average width" },
+          { action: "sd25", title: zh ? "高波动 σ = 25" : "High SD σ = 25", sub: zh ? "总体越分散，区间越宽" : "Larger σ widens intervals" },
+          { action: "c99", title: zh ? "原地改用 99%" : "Resize to 99%", sub: zh ? "同批样本变宽，提升捕获率" : "Same samples widen in place" }
         ];
-    row.innerHTML = list.map(function(item){
-      return '<button type="button" class="scenario-chip" data-sc="' + item.action + '">' + item.label + '</button>';
+    row.innerHTML = cards.map(function(c){
+      return '<button type="button" class="preset-btn" data-sc="' + c.action + '"><strong>' + c.title + '</strong><span>' + c.sub + '</span></button>';
     }).join("");
   }
 
@@ -707,76 +657,65 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
     var zh = state.lang === "zh";
     var isProp = state.mode === "prop";
     var cBox = $("condBox");
-    var items = state.items;
-    var N = items.length;
+    var items = state.items, N = items.length;
 
     if(isProp){
       if(N > 0){
         var last = items[N - 1];
-        var npHat = state.n * last.est;
-        var nqHat = state.n * (1 - last.est);
+        var npHat = state.n * last.est, nqHat = state.n * (1 - last.est);
         var popOk = (state.n * state.p >= 10) && (state.n * (1 - state.p) >= 10);
-        var sampOk = npHat >= 10 && nqHat >= 10;
-        var ok = sampOk && popOk;
+        var ok = (npHat >= 10 && nqHat >= 10) && popOk;
         cBox.className = "cond " + (ok ? "ok" : "warn");
-        if(zh){
-          cBox.innerHTML = '<b>Large Counts 条件：</b>最近样本 #' + N + '：n·p̂ = ' + state.n + ' × ' + last.est.toFixed(2) + ' = <b>' + npHat.toFixed(1) + '</b>，n·(1−p̂) = <b>' + nqHat.toFixed(1) + '</b> → ' +
-            (ok ? '<b>✓ 均 ≥ 10</b>，Large Counts 成立，抽样分布近似正态，区间可信。'
-                : '<b>✗ 存在 &lt; 10</b>，正态近似不可靠，实际捕获率可能偏离 ' + Math.round(state.conf*100) + '%——加大 n 或调整 p 试试。');
-        } else {
-          cBox.innerHTML = '<b>Large Counts Check:</b> Latest #' + N + ': np̂ = <b>' + npHat.toFixed(1) + '</b>, n(1−p̂) = <b>' + nqHat.toFixed(1) + '</b> → ' +
-            (ok ? '<b>✓ Both ≥ 10</b>; Normal approximation holds.'
-                : '<b>✗ Below 10</b>; Normal approximation is unreliable—capture rate may drift from ' + Math.round(state.conf*100) + '%.');
-        }
+        cBox.innerHTML = zh
+          ? '<b>Large Counts（最近 #' + N + '）：</b>np̂ = ' + npHat.toFixed(1) + '，n(1−p̂) = ' + nqHat.toFixed(1) + (ok ? ' → <b>✓ 均 ≥ 10</b>，近似正态成立。' : ' → <b>✗ 有项 &lt; 10</b>，近似不可靠，捕获率可能偏离 ' + Math.round(state.conf*100) + '%。')
+          : '<b>Large Counts (#' + N + '):</b> np̂ = ' + npHat.toFixed(1) + ', n(1−p̂) = ' + nqHat.toFixed(1) + (ok ? ' → <b>✓ Both ≥ 10</b>.' : ' → <b>✗ &lt; 10</b>, normal approx unreliable.');
       } else {
         var np0 = state.n * state.p, nq0 = state.n * (1 - state.p), ok0 = np0 >= 10 && nq0 >= 10;
         cBox.className = "cond " + (ok0 ? "ok" : "warn");
-        cBox.innerHTML = zh
-          ? '<b>Large Counts 条件：</b>当前设置 np = ' + np0.toFixed(1) + '，n(1−p) = ' + nq0.toFixed(1) + (ok0 ? ' → <b>✓ 均 ≥ 10</b>。' : ' → <b>✗ 有项 &lt; 10</b>，建议增大 n。')
-          : '<b>Large Counts Check:</b> np = ' + np0.toFixed(1) + ', n(1−p) = ' + nq0.toFixed(1) + (ok0 ? ' → <b>✓ Both ≥ 10</b>.' : ' → <b>✗ &lt; 10</b>.');
+        cBox.textContent = zh
+          ? (ok0 ? "✓ Large Counts 满足 (np=" + np0.toFixed(1) + ", n(1−p)=" + nq0.toFixed(1) + " ≥ 10)" : "⚠ np 或 n(1−p) < 10：实际捕获率可能偏离目标")
+          : (ok0 ? "✓ Large Counts met (np=" + np0.toFixed(1) + ", n(1−p)=" + nq0.toFixed(1) + " ≥ 10)" : "⚠ Large Counts NOT met.");
       }
     } else {
       cBox.className = "cond ok";
-      cBox.innerHTML = zh
-        ? '<b>Normality 正态条件：</b>抽自正态总体 N(' + state.mu + ', ' + state.sd + '²) → <b>✓ 任意样本量 n 下条件均成立</b>。' + (state.mode === "mean-t" ? '注意每次样本 s 不同，每条 t 区间宽度也随之变化。' : '由于 σ 已知，每条 z 区间宽度完全相同。')
-        : '<b>Normality Check:</b> Drawn from N(' + state.mu + ', ' + state.sd + '²) → <b>✓ Satisfied for any n</b>. ' + (state.mode === "mean-t" ? 'Notice how random s makes t-interval widths vary.' : 'Known σ keeps every z-interval width identical.');
+      cBox.textContent = zh
+        ? "✓ 抽自正态总体（任意 n 下都满足正态条件" + (state.mode === "mean-t" ? "；t 区间随样本 s 波动" : "；已知 σ 时宽度恒定") + "）"
+        : "✓ Drawn from a Normal population (" + (state.mode === "mean-t" ? "t-width varies with s" : "fixed width with known σ") + ").";
     }
 
     var truthLabel = isProp ? "p" : "μ";
     var estLabel = isProp ? "p̂" : "x̄";
     $("howtoBox").innerHTML = zh
-      ? '<b>读图方法：</b>每行是一个样本算出的区间，圆点是该样本的 ' + estLabel + '。竖直金虚线是真值 ' + truthLabel + '——区间横线<b>穿过竖线 = 捕获 ✓</b>（实心绿点），没穿过 = 未捕获 ✕（空心红点）。'
-      : '<b>How to Read:</b> Each row is one sample’s CI centered at ' + estLabel + '. Crossing the gold dashed line (' + truthLabel + ') = <b>Captured ✓</b> (solid green dot); missing it = <b>Missed ✕</b> (hollow red dot).';
+      ? '<b>读图：</b>圆点是 ' + estLabel + '，金虚线是真值 ' + truthLabel + '（<b>区间在动，真值不动</b>）。穿过竖线 = 捕获（实心绿点），未穿过 = 失手（空心红点）。'
+      : '<b>Read Plot:</b> Dot = ' + estLabel + ', gold line = fixed ' + truthLabel + '. Crossing line = captured (solid green); missing = missed (hollow red).';
   }
 
   function renderLatestTable(){
     var zh = state.lang === "zh";
     var isProp = state.mode === "prop";
     var dec = isProp ? 3 : 2;
-    var items = state.items;
-    var N = items.length;
+    var items = state.items, N = items.length;
 
     if(isProp){
-      $("latestHead").innerHTML = '<tr><th>#</th><th>' + (zh ? '成功数 X' : 'Count X') + '</th><th>p̂</th><th>SE</th><th>' + (zh ? '区间 (p̂ ± ME)' : 'Interval (p̂ ± ME)') + '</th><th>' + (zh ? '结果' : 'Result') + '</th></tr>';
+      $("latestHead").innerHTML = '<tr><th>#</th><th>' + (zh ? '成功数 X' : 'Count X') + '</th><th>p̂</th><th>SE</th><th>' + (zh ? '区间 (p̂ ± ME)' : 'Interval') + '</th><th>' + (zh ? '结果' : 'Result') + '</th></tr>';
     } else {
       var sdCol = state.mode === "mean-t" ? 's' : 'σ';
-      $("latestHead").innerHTML = '<tr><th>#</th><th>x̄</th><th>' + sdCol + '</th><th>SE</th><th>' + (zh ? '区间 (x̄ ± ME)' : 'Interval (x̄ ± ME)') + '</th><th>' + (zh ? '结果' : 'Result') + '</th></tr>';
+      $("latestHead").innerHTML = '<tr><th>#</th><th>x̄</th><th>' + sdCol + '</th><th>SE</th><th>' + (zh ? '区间 (x̄ ± ME)' : 'Interval') + '</th><th>' + (zh ? '结果' : 'Result') + '</th></tr>';
     }
 
     if(N === 0){
-      $("latestBody").innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ink-3);padding:16px">' + (zh ? '暂无抽样记录' : 'No samples yet') + '</td></tr>';
+      $("latestBody").innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ink-3);padding:14px">' + (zh ? '暂无抽样记录' : 'No samples yet') + '</td></tr>';
       return;
     }
 
-    var showCount = Math.min(12, N);
-    var rowsHtml = "";
+    var showCount = Math.min(12, N), rowsHtml = "";
     for(var i = 0; i < showCount; i++){
       var idx = N - 1 - i;
       var it = items[idx];
       var isHover = (i === state.hoverIdx);
       var badge = '<span class="badge ' + (it.hit ? 'hit' : 'miss') + '">' + (it.hit ? (zh ? '✓ 捕获' : '✓ Hit') : (zh ? '✕ 未捕获' : '✕ Miss')) + '</span>';
       if(isProp){
-        rowsHtml += '<tr' + (isHover ? ' class="is-hover"' : '') + '><td>' + (idx + 1) + '</td><td>' + it.x + ' / ' + state.n + '</td><td>' + it.est.toFixed(3) + '</td><td>' + it.se.toFixed(3) + '</td><td>(' + it.lo.toFixed(3) + ', ' + it.hi.toFixed(3) + ')</td><td>' + badge + '</td></tr>';
+        rowsHtml += '<tr' + (isHover ? ' class="is-hover"' : '') + '><td>' + (idx + 1) + '</td><td>' + it.x + '/' + state.n + '</td><td>' + it.est.toFixed(3) + '</td><td>' + it.se.toFixed(3) + '</td><td>(' + it.lo.toFixed(3) + ', ' + it.hi.toFixed(3) + ')</td><td>' + badge + '</td></tr>';
       } else {
         var sdText = (state.mode === "mean-t" ? it.sdSample.toFixed(2) : state.sd.toFixed(1));
         rowsHtml += '<tr' + (isHover ? ' class="is-hover"' : '') + '><td>' + (idx + 1) + '</td><td>' + it.est.toFixed(dec) + '</td><td>' + sdText + '</td><td>' + it.se.toFixed(2) + '</td><td>(' + it.lo.toFixed(dec) + ', ' + it.hi.toFixed(dec) + ')</td><td>' + badge + '</td></tr>';
@@ -795,56 +734,42 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
     var paramZh = isProp ? "总体真实比例 p" : "总体真实均值 μ";
     var paramEn = isProp ? "true population proportion p" : "true population mean μ";
 
-    $("interpTitle").innerHTML = zh
-      ? '怎么理解置信区间与 ' + C + '% 置信水平？ <span class="en">Interpretation</span>'
-      : 'Confidence Interval vs. ' + C + '% Level <span class="en">Interpretation</span>';
+    $("interpTitle").textContent = zh
+      ? "置信区间 vs " + C + "% 置信水平（标准表述与误区）"
+      : "Confidence Interval vs. " + C + "% Level (Templates)";
 
     $("tplInterval").innerHTML = zh
-      ? '<b>1 · 置信区间标准表述（Confidence Interval · 针对上面最新算出的区间）</b>我们有 <b>' + C + '%</b> 的信心认为，' + paramZh + ' 落在区间 <b>(' + loTxt + ', ' + hiTxt + ')</b> 内。<span class="tpl-en">We are ' + C + '% confident that the interval (' + loTxt + ', ' + hiTxt + ') captures the ' + paramEn + '.</span>'
-      : '<b>1 · Interpret the Confidence Interval (Specific Interval)</b>We are <b>' + C + '%</b> confident that the interval (' + loTxt + ', ' + hiTxt + ') captures the ' + paramEn + '.';
+      ? '<div class="tpl-title">1 · 解释单个置信区间（Confidence Interval）</div>我们有 <b>' + C + '%</b> 的信心认为，' + paramZh + ' 落在区间 <b>(' + loTxt + ', ' + hiTxt + ')</b> 内。<span class="tpl-en">We are ' + C + '% confident that the interval (' + loTxt + ', ' + hiTxt + ') captures the ' + paramEn + '.</span>'
+      : '<div class="tpl-title">1 · Interpret the Confidence Interval</div>We are <b>' + C + '%</b> confident that the interval (' + loTxt + ', ' + hiTxt + ') captures the ' + paramEn + '.';
 
     $("tplLevel").innerHTML = zh
-      ? '<b>2 · 置信水平标准表述（Confidence Level · 针对抽样方法本身）</b>如果用相同方法反复抽取大量样本量为 <b>n = ' + state.n + '</b> 的随机样本并各自构建 ' + C + '% 置信区间，其中约有 <b>' + C + '%</b> 的区间会捕获' + paramZh + '。<span class="tpl-en">If we take many random samples of size n = ' + state.n + ' and construct a ' + C + '% CI from each, about ' + C + '% of them will capture the ' + paramEn + '.</span>'
-      : '<b>2 · Interpret the Confidence Level (Long-Run Method)</b>If we take many random samples of size <b>n = ' + state.n + '</b> and build a ' + C + '% CI from each, about <b>' + C + '%</b> of all intervals will capture the ' + paramEn + '.';
+      ? '<div class="tpl-title">2 · 解释 ' + C + '% 置信水平（Confidence Level）</div>如果重复抽取大量样本量为 <b>n = ' + state.n + '</b> 的随机样本并各自构建 ' + C + '% 置信区间，其中约有 <b>' + C + '%</b> 的区间会捕获' + paramZh + '。<span class="tpl-en">If we take many random samples of size n = ' + state.n + ' and build a ' + C + '% CI from each, about ' + C + '% of them will capture the ' + paramEn + '.</span>'
+      : '<div class="tpl-title">2 · Interpret the ' + C + '% Confidence Level</div>If we take many random samples of size <b>n = ' + state.n + '</b> and build a ' + C + '% CI from each, about <b>' + C + '%</b> of all intervals will capture the ' + paramEn + '.';
 
     $("interpList").innerHTML = zh
-      ? '<li><b>' + C + '% 说的是方法，不是单个区间：</b>反复抽样时约 ' + C + '% 的区间会捕获真值——左侧区间图和收敛曲线演示的就是这件事。</li>' +
-        '<li><b>单个区间只有两种命运：</b>要么含真值，要么不含，没有“这个区间有 ' + C + '% 概率含真值”——真值是固定常数（未知而已），随机的是每次抽出的区间。</li>' +
-        '<li><span class="bad-quote">“真值落在这个区间的概率是 ' + C + '%”</span> ← AP / 统计阅卷最常见的扣分说法，千万别这么写。</li>' +
-        '<li><b>置信水平与精度的权衡：</b>想更保险（C ↑）→ 临界值变大 → 区间变宽；想更精确（宽度 ↓）→ 只能增大样本量 n，且宽度按 <b>1/√n</b> 缩小：<b>n 变 4 倍，宽度才减半</b>。</li>'
-      : '<li><b>' + C + '% describes the method, not one interval:</b> Over repeated samples, about ' + C + '% of intervals capture the truth—as shown on the left.</li>' +
-        '<li><b>A single interval is either right or wrong:</b> Its endpoints are fixed once computed; the true parameter is fixed too, so probability is 0 or 1.</li>' +
-        '<li><span class="bad-quote">“There is a ' + C + '% probability the truth is in this interval.”</span> ← Classic grading pitfall!</li>' +
-        '<li><b>Confidence vs. Precision:</b> Higher C widens the interval. To halve the width without losing confidence, you must quadruple sample size n (1/√n rule).</li>';
-
-    var confList = [0.80, 0.90, 0.95, 0.99];
-    var sym = state.mode === "mean-t" ? "t*" : "z*";
-    $("zRefGrid").innerHTML = confList.map(function(c){
-      var val = critVal(c).toFixed(3);
-      var active = Math.abs(c - state.conf) < 1e-6 ? " active" : "";
-      return '<button type="button" class="z-ref-btn' + active + '" data-ref-c="' + c + '"><span>' + Math.round(c*100) + '% (' + sym + ')</span><strong>' + val + '</strong></button>';
-    }).join("");
-    $("zRefNote").textContent = zh
-      ? "点击上方卡片可直接原地切换置信水平，观察区间伸缩与捕获率变化"
-      : "Click any card above to resize existing intervals in place";
+      ? '<li><b>' + C + '% 描述的是方法，不是单个区间：</b>左边收敛曲线演示的就是“重复抽样约 ' + C + '% 会捕获真值”。</li>' +
+        '<li><b>单个区间只有命中或失手：</b>真值是固定常数，算出区间后它要么含真值、要么不含。<span class="bad-quote">“真值落在这个区间的概率是 ' + C + '%”</span> ← AP 阅卷常见扣分说法，不要这么写！</li>' +
+        '<li><b>权衡规律：</b>C ↑ → 临界值变大 → 区间变宽；n ↑ → 宽度按 <b>1/√n</b> 缩小（n 变 4 倍，宽度才减半），但置信水平不变。</li>'
+      : '<li><b>' + C + '% describes the method, not one interval:</b> The convergence plot shows the long-run capture rate approaching ' + C + '%.</li>' +
+        '<li><b>A single interval is fixed:</b> It either contains the parameter or doesn’t. <span class="bad-quote">“There is a ' + C + '% probability truth is inside”</span> ← Grading pitfall!</li>' +
+        '<li><b>Trade-off:</b> Higher C widens intervals; 4× sample size n halves width (1/√n) without changing confidence level.</li>';
 
     var qs = zh
       ? [
-          { q: "1. 抽 500 个 95% 区间，捕获率会恰好 = 95.0% 吗？", a: "几乎不会恰好等于 95.0%！每一次抽样是否命中都像做一次成功率为 95% 的伯努利试验，500 次的标准差约为 √(0.95×0.05/500) ≈ 0.97%，所以实际捕获率通常在 93%–97% 之间波动。点「▶ 自动连跑」到 2000 个以上，就能看到收敛曲线贴近 95% 金线。" },
-          { q: "2. 把置信水平从 95% 原地改成 99%，什么变了、什么没变？", a: "在样本不变的情况下，每个区间的中心（p̂ 或 x̄）都没动，但临界值变大（z* 从 1.960 → 2.576），所有区间同时向两侧变宽——原本压线失手的红区间有可能直接“套住”真值变绿！捕获率上升，代价是区间变宽、精度下降。" },
-          { q: "3. 把样本量 n 从 50 改到 200，区间宽度大约变成原来的多少？", a: "大约变成原来的 1/2（减半）！因为边际误差 ME ∝ 1/√n，n 增大到 4 倍，√4 = 2，所以平均宽度减半；同时长期捕获率依然保持在设定的置信水平 C% 左右（n 改变的是精度，不是置信水平）。" },
-          { q: "4. 在比例模式下把真值 p 改成 0.10，图形和 Large Counts 有什么变化？", a: "区间整体向左移动到 0.10 附近，且由于 p(1−p) 从 0.25 降到 0.09，区间明显变窄；当 n=50 时 np = 5 < 10，Large Counts 不成立，偶尔甚至抽到 X=0 导致区间塌缩成 0.00 的单个红点。" },
-          { q: "5. 同学说：“我的区间是 (0.42, 0.58)，所以 p 在里面的概率是 95%。”错在哪？", a: "真值 p 是固定不变的常数（不是随机变量），而算出来的 (0.42, 0.58) 也已经确定了——它要么包含 p（概率 1），要么不包含 p（概率 0）。95% 指的是「用这种抽样构造方法重复很多次，约 95% 的区间能捕获 p」。" }
+          { q: "1. 抽 500 个 95% 区间，捕获率会恰好 = 95.0% 吗？", a: "几乎不会恰好等于 95.0%！每次抽样像一次成功率 95% 的伯努利试验，500 次通常在 93%–97% 之间波动。点「▶ 自动连跑」到 2000 个以上，就能看到收敛曲线贴近 95% 虚线。" },
+          { q: "2. 把置信水平从 95% 原地改成 99%，什么变了、什么没变？", a: "样本中心（p̂ 或 x̄）没动，临界值变大（z*: 1.960 → 2.576），所有区间向两侧变宽——原本压线失手的红条会变绿捕获！代价是区间变宽、精度降低。" },
+          { q: "3. 把 n 从 50 改到 200，区间宽度大约变成原来的多少？", a: "减半！因为 ME ∝ 1/√n，n 变 4 倍 → √4 = 2，宽度减半；但长期捕获率仍围绕 C% 波动（n 影响精度，不改变置信水平）。" },
+          { q: "4. 把比例真值 p 改成 0.10，图形和 Large Counts 有什么变化？", a: "区间整体左移到 0.10 附近且明显变窄（因 p(1−p) 变小）；n=50 时 np = 5 < 10，Large Counts 不成立，偶尔抽到 X=0 会塌缩成一个红点。" },
+          { q: "5. “区间 (0.42, 0.58) 有 95% 概率包含 p”错在哪？", a: "p 是固定常数，(0.42, 0.58) 也已经算出固定了——它含不含 p 只有 1 或 0。95% 是重复抽样构造区间时的长期捕获率。" }
         ]
       : [
-          { q: "1. If we draw 500 intervals at 95%, will capture rate equal 95.0% exactly?", a: "Almost never! Each interval is a Bernoulli trial with success probability ~0.95. Even at N = 500, SE ≈ 1.0%, so rates typically sit around 93%–97%. Use Auto-Run to watch the convergence line settle near 95%." },
-          { q: "2. Switch C from 95% to 99% in place—what changes and what stays fixed?", a: "With the same samples, every center (p̂ or x̄) stays identical while the critical value jumps (e.g., 1.960 → 2.576). Every bar widens symmetrically, flipping narrow misses into green captures—more confidence at the cost of wider intervals." },
-          { q: "3. Change n from 50 to 200—how does average interval width change?", a: "It is cut roughly in half! Because ME ∝ 1/√n, 4× sample size halves the width while long-run capture rate stays at C%." },
-          { q: "4. Set true p = 0.10—what happens to the plot and Large Counts?", a: "Intervals shift left around 0.10 and become narrower because p(1−p) shrinks. At n = 50, np = 5 < 10 so Large Counts fails and occasional X = 0 samples collapse to a width-0 red dot." },
-          { q: "5. What is wrong with saying 'There is a 95% probability p is in (0.42, 0.58)'?", a: "True p is fixed (not random), and this specific interval either contains p or doesn’t. 95% refers to the long-run success rate of the sampling procedure over many repeated samples." }
+          { q: "1. Will 500 intervals at 95% capture truth exactly 95.0% of the time?", a: "Almost never! With N=500, capture rate fluctuates roughly between 93% and 97%. Use Auto-Run to watch it converge toward 95%." },
+          { q: "2. Resize C from 95% to 99% in place—what changes?", a: "Centers stay fixed while every bar widens symmetrically, flipping borderline red misses to green hits—higher confidence at the cost of wider intervals." },
+          { q: "3. Change n from 50 to 200—what happens to width?", a: "Width is cut roughly in half (1/√n rule), while long-run capture rate stays around C%." },
+          { q: "4. Set true p = 0.10—how does the plot change?", a: "Bars shift left around 0.10 and narrow because p(1−p) shrinks; at n=50, Large Counts fails (np=5 < 10)." },
+          { q: "5. Why is '95% probability p is in (0.42, 0.58)' wrong?", a: "Both p and the computed interval are fixed, so probability is 0 or 1. 95% is the long-run capture rate of the procedure." }
         ];
 
-    // Preserve open state across updates
     var existingOpen = {};
     $("tryList").querySelectorAll("details").forEach(function(d, idx){ if(d.open) existingOpen[idx] = true; });
     $("tryList").innerHTML = qs.map(function(item, idx){
@@ -864,52 +789,45 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
     $("nNum").value = state.n; $("nRange").value = clamp(state.n, 5, 500);
 
     var cv = critVal(), sym = state.mode === "mean-t" ? "t*" : "z*";
+    var C = Math.round(state.conf * 100);
     $("critLbl").textContent = sym + " = " + cv.toFixed(3);
+    $("stCritK").textContent = (zh ? "临界值 " : "Critical ") + sym;
+    $("stCrit").textContent = cv.toFixed(3);
+    $("stCritSub").textContent = "C = " + C + "% · n = " + state.n;
     $("legTruth").textContent = isProp ? (zh ? "真值 p" : "True p") : (zh ? "真值 μ" : "True μ");
 
     document.querySelectorAll("#nPresets button").forEach(function(b){ b.classList.toggle("active", parseInt(b.dataset.n, 10) === state.n); });
-    document.querySelectorAll("#cPresets button").forEach(function(b){
-      var cVal = parseFloat(b.dataset.c);
-      b.classList.toggle("active", Math.abs(cVal - state.conf) < 1e-6);
-      var span = b.querySelector("[data-cv]");
-      if(span) span.textContent = sym + " = " + critVal(cVal).toFixed(3);
-    });
+    document.querySelectorAll("#cPresets button").forEach(function(b){ b.classList.toggle("active", Math.abs(parseFloat(b.dataset.c) - state.conf) < 1e-6); });
 
     renderFormula();
-    renderScenarioChips();
+    renderScenarioCards();
     renderConditionAndHowto();
 
     var items = state.items, N = items.length, dec = isProp ? 3 : 2;
-    var C = Math.round(state.conf * 100);
+    var shown = Math.min(60, N);
     $("btnCsv").disabled = N === 0;
-    $("stTotal").textContent = N.toLocaleString();
-    $("stTotSub").textContent = zh ? (N.toLocaleString() + " 个样本") : (N.toLocaleString() + " samples");
-    $("stHitSub").textContent = isProp ? (zh ? "包含 p" : "Includes p") : (zh ? "包含 μ" : "Includes μ");
-    $("stMissSub").textContent = isProp ? (zh ? "不含 p" : "Excludes p") : (zh ? "不含 μ" : "Excludes μ");
+    $("chartTitle").textContent = zh
+      ? ("区间捕获图 · 最近 " + shown + " 个（共 " + N.toLocaleString() + " 个，竖虚线 = 真值）")
+      : ("Interval Capture Plot · Latest " + shown + " of " + N.toLocaleString() + " (Dashed Line = Truth)");
     $("progressTarget").style.left = C + "%";
-    $("progressNote").textContent = zh
-      ? "金色刻度 = 目标置信水平 " + C + "% · 抽得越多，捕获率应越贴近它（但不会恰好相等）"
-      : "Gold notch = target confidence level " + C + "% · Capture rate approaches it as N grows";
     $("convSub").textContent = zh
-      ? "横轴 = 已抽区间个数，纵轴 = 累计捕获率。金色虚线是目标置信水平 " + C + "%——曲线上下波动着向它靠拢，这就是「长期比例」的含义。"
-      : "X-axis = intervals drawn, Y-axis = cumulative capture rate. Gold dashed line = target " + C + "% confidence level.";
+      ? "横轴 = 已抽区间数，纵轴 = 累计捕获率，虚线 = 目标置信水平 " + C + "%。"
+      : "X = intervals drawn, Y = cumulative capture rate, dashed = target " + C + "%.";
 
     if(N === 0){
       $("emptyNote").hidden = false;
       $("emptyNote").textContent = t("empty");
-      $("stHits").textContent = "0";
-      $("stMiss").textContent = "0";
-      $("stWidth").textContent = "—";
-      $("stME").textContent = zh ? "2 × 边际误差" : "2 × margin of error";
       $("stRate").textContent = "—";
+      $("stRateSub").textContent = (zh ? "目标 " : "Target ") + C + "% · 0 / 0";
+      $("stMiss").textContent = "0";
+      $("stMissSub").textContent = isProp ? (zh ? "不含 p" : "Excludes p") : (zh ? "不含 μ" : "Excludes μ");
+      $("stWidth").textContent = "—";
+      $("stME").textContent = zh ? "2 × 边际误差" : "2 × ME";
       $("progressFill").style.width = "0%";
       $("coachText").innerHTML = zh
-        ? "尚未抽样。点击左侧 <b>「抽 1 个区间」</b> 或 <b>「抽 100 个」</b>，观察实际捕获率如何向目标 <b>" + C + "%</b> 靠近。"
-        : "No samples yet. Click <b>Draw 1</b> or <b>Draw 100</b> to watch the capture rate approach <b>" + C + "%</b>.";
+        ? "尚未抽样：点下方 <b>「抽 1 个」</b> 或 <b>「抽 100 个」</b> 观察捕获率向 <b>" + C + "%</b> 靠近。"
+        : "No samples yet: click <b>Draw 1</b> or <b>Draw 100</b> to see rate approach <b>" + C + "%</b>.";
       $("hoverTip").textContent = "";
-      $("chartCap").textContent = zh
-        ? "竖直金线是真值 " + (isProp ? "p = " + state.p.toFixed(2) : "μ = " + state.mu) + "：横线穿过它 = 捕获。"
-        : "Gold dashed line is truth " + (isProp ? "p = " + state.p.toFixed(2) : "μ = " + state.mu) + ".";
     } else {
       $("emptyNote").hidden = true;
       var hits = 0, sumME = 0;
@@ -919,38 +837,36 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
       var avgME = sumME / N;
       var diff = Math.abs(rate - C);
 
-      $("stHits").textContent = hits.toLocaleString();
+      $("stRate").textContent = rate.toFixed(1) + "%";
+      $("stRateSub").textContent = (zh ? "目标 " : "Target ") + C + "% · " + hits.toLocaleString() + " / " + N.toLocaleString();
       $("stMiss").textContent = misses.toLocaleString();
+      $("stMissSub").textContent = (zh ? "失手率 " : "Miss ") + (misses / N * 100).toFixed(1) + "%";
       $("stWidth").textContent = (2 * avgME).toFixed(dec);
       $("stME").textContent = (zh ? "平均 ME = " : "Mean ME = ") + avgME.toFixed(dec);
-      $("stRate").textContent = rate.toFixed(1) + "%";
       $("progressFill").style.width = Math.min(100, Math.max(0, rate)).toFixed(1) + "%";
 
-      var coachTail = "";
-      if(zh){
-        coachTail = N < 100
-          ? "样本还少，波动大很正常——再多抽一些。"
-          : (N < 400 ? "抽得越多，这个数字越应该贴近 " + C + "%。" : "大样本下已明显向目标置信水平 " + C + "% 稳定靠拢。");
-        $("coachText").innerHTML = "已抽 <b>" + N.toLocaleString() + "</b> 个区间，捕获 <b>" + hits.toLocaleString() + "</b> 个，未捕获 <b>" + misses.toLocaleString() + "</b> 个。目标是 <b>" + C + "%</b>，目前差 <b>" + diff.toFixed(1) + " 个百分点</b>。" + coachTail;
-      } else {
-        coachTail = N < 100
-          ? "With few samples, fluctuation is normal—draw more."
-          : "As N increases, capture rate settles closer to " + C + "%.";
-        $("coachText").innerHTML = "Drawn <b>" + N.toLocaleString() + "</b> intervals: <b>" + hits.toLocaleString() + "</b> captured, <b>" + misses.toLocaleString() + "</b> missed. Target is <b>" + C + "%</b> (diff: <b>" + diff.toFixed(1) + " pp</b>). " + coachTail;
-      }
-
-      var shown = Math.min(60, N);
-      var tTxt = isProp ? ("p = " + state.p.toFixed(2)) : ("μ = " + state.mu);
-      $("chartCap").textContent = zh
-        ? "显示最近 " + shown + " 个区间（共 " + N.toLocaleString() + " 个）。竖直金线是真值 " + tTxt + "：横线穿过它 = 捕获。注意每个区间的中心都在动——区间在动，真值不动。"
-        : "Showing latest " + shown + " of " + N.toLocaleString() + " intervals. Gold vertical line is " + tTxt + ". Centers vary from sample to sample—intervals move, the true parameter does not.";
+      $("coachText").innerHTML = zh
+        ? "已抽 <b>" + N.toLocaleString() + "</b> 个，捕获 <b>" + hits.toLocaleString() + "</b> 个（与目标 " + C + "% 差 <b>" + diff.toFixed(1) + "</b> 个百分点）。" + (N < 100 ? "样本少时波动正常，再多抽一些！" : "大样本下正稳定贴近目标线。")
+        : "Drawn <b>" + N.toLocaleString() + "</b> intervals, <b>" + hits.toLocaleString() + "</b> captured (diff: <b>" + diff.toFixed(1) + " pp</b> from " + C + "%).";
     }
 
     renderLatestTable();
     renderPedagogy();
   }
 
-  /* ---------- Interval Stack Chart ---------- */
+  /* ---------- Clean Axis Ticks + Interval Stack Chart ---------- */
+  function niceTicks(lo, hi){
+    var span = hi - lo;
+    var raw = span / 5;
+    var pow = Math.pow(10, Math.floor(Math.log10(raw)));
+    var norm = raw / pow;
+    var step = (norm <= 1.2 ? 1 : (norm <= 2.2 ? 2 : (norm <= 5.5 ? 5 : 10))) * pow;
+    var start = Math.ceil(lo / step - 1e-9) * step;
+    var out = [];
+    for(var v = start; v <= hi + 1e-9; v += step) out.push(v);
+    return { step: step, ticks: out };
+  }
+
   function chartBounds(){
     var truth = truthVal(), se = theorySE(), cv = critVal();
     var half = Math.max(4.4 * se, 1.85 * cv * se);
@@ -960,7 +876,7 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
       if(vis[i].lo < lo) lo = vis[i].lo;
       if(vis[i].hi > hi) hi = vis[i].hi;
     }
-    var pad = (hi - lo) * 0.06;
+    var pad = (hi - lo) * 0.05;
     lo -= pad; hi += pad;
     if(state.mode === "prop"){ lo = Math.max(-0.02, lo); hi = Math.min(1.02, hi); }
     return [lo, hi];
@@ -968,34 +884,34 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
 
   function drawChart(){
     var cv = $("chart"), wrap = cv.parentElement;
-    var W = wrap.clientWidth - 40;
+    var W = wrap.clientWidth - 36;
     if(W < 200) W = wrap.clientWidth;
-    var H = cv.clientHeight || 420, dpr = window.devicePixelRatio || 1;
+    var H = cv.clientHeight || 310, dpr = window.devicePixelRatio || 1;
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
     var ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
 
     var bnds = chartBounds(), lo = bnds[0], hi = bnds[1], truth = truthVal();
-    var padL = 22, padR = 22, padT = 26, padB = 30, cw = W - padL - padR, ch = H - padT - padB;
+    var padL = 20, padR = 20, padT = 24, padB = 26, cw = W - padL - padR, ch = H - padT - padB;
     function X(v){ return padL + (v - lo) / (hi - lo) * cw; }
 
-    var gold = cssVar("--gold"), sage = cssVar("--sage"), danger = cssVar("--danger"),
-        muted = cssVar("--ink-3"), line = cssVar("--line"), ink = cssVar("--ink"), surface = cssVar("--surface");
+    var gold = cssVar("--gold-bright"), sage = cssVar("--sage"), danger = cssVar("--danger"),
+        muted = cssVar("--ink-3"), line = cssVar("--line-soft"), ink = cssVar("--ink"), surface = cssVar("--surface");
 
-    // Gridlines
+    var tkInfo = niceTicks(lo, hi);
     ctx.strokeStyle = line; ctx.lineWidth = 1;
-    for(var g=0;g<=4;g++){
-      var gx = padL + cw * g / 4;
+    tkInfo.ticks.forEach(function(tv){
+      var gx = X(tv);
       ctx.beginPath(); ctx.moveTo(gx, padT); ctx.lineTo(gx, padT + ch); ctx.stroke();
-    }
+    });
 
     // Gold dashed truth vertical line
     var tx = X(truth);
     ctx.save();
-    ctx.strokeStyle = gold; ctx.lineWidth = 2.2; ctx.setLineDash([6, 4]);
+    ctx.strokeStyle = gold; ctx.lineWidth = 2; ctx.setLineDash([5, 4]);
     ctx.beginPath(); ctx.moveTo(tx, padT - 4); ctx.lineTo(tx, padT + ch); ctx.stroke();
     ctx.restore();
     ctx.fillStyle = gold; ctx.font = "700 12px ui-monospace, Menlo, monospace"; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
-    ctx.fillText((state.mode==="prop" ? "p = " + state.p.toFixed(2) : "μ = " + state.mu), tx, padT - 8);
+    ctx.fillText((state.mode==="prop" ? "p=" + state.p.toFixed(2) : "μ=" + state.mu), tx, padT - 6);
 
     // Draw latest 60 intervals (newest at top)
     var vis = state.items.slice(-60);
@@ -1013,17 +929,17 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
       }
 
       ctx.strokeStyle = col;
-      ctx.lineWidth = isHover ? 3.2 : (vis.length > 42 ? 1.9 : 2.3);
+      ctx.lineWidth = isHover ? 3 : (vis.length > 42 ? 1.8 : 2.2);
       ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
 
       if(vis.length <= 45){
         ctx.beginPath();
-        ctx.moveTo(x0, y - 3.2); ctx.lineTo(x0, y + 3.2);
-        ctx.moveTo(x1, y - 3.2); ctx.lineTo(x1, y + 3.2);
+        ctx.moveTo(x0, y - 3); ctx.lineTo(x0, y + 3);
+        ctx.moveTo(x1, y - 3); ctx.lineTo(x1, y + 3);
         ctx.stroke();
       }
 
-      var r = isHover ? 4.4 : (vis.length > 45 ? 2.5 : 3.2);
+      var r = isHover ? 4.2 : (vis.length > 45 ? 2.4 : 3.0);
       ctx.beginPath();
       ctx.arc(xm, y, r, 0, Math.PI * 2);
       if(item.hit){
@@ -1032,39 +948,38 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
       } else {
         ctx.fillStyle = surface;
         ctx.fill();
-        ctx.lineWidth = 1.8;
+        ctx.lineWidth = 1.7;
         ctx.strokeStyle = danger;
         ctx.stroke();
       }
     }
 
     // Bottom axis
-    ctx.strokeStyle = muted; ctx.lineWidth = 1;
+    ctx.strokeStyle = cssVar("--line"); ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(padL, padT + ch); ctx.lineTo(W - padR, padT + ch); ctx.stroke();
     ctx.fillStyle = muted; ctx.font = "11px ui-monospace, Menlo, monospace"; ctx.textAlign = "center"; ctx.textBaseline = "top";
-    var dec = state.mode === "prop" ? 2 : 1;
-    for(var tk=0;tk<=4;tk++){
-      var tv = lo + (hi - lo) * tk / 4;
-      ctx.fillText(tv.toFixed(dec), X(tv), padT + ch + 7);
-    }
+    var dec = tkInfo.step < 0.05 ? 2 : (tkInfo.step < 1 ? 2 : (tkInfo.step < 5 ? 1 : 0));
+    tkInfo.ticks.forEach(function(tv){
+      var label = Math.abs(tv) < 1e-9 ? (0).toFixed(dec) : tv.toFixed(dec);
+      ctx.fillText(label, X(tv), padT + ch + 6);
+    });
   }
 
   /* ---------- Convergence Chart ---------- */
   function drawConvergenceChart(){
     var cv = $("convChart"), wrap = cv.parentElement;
-    var W = wrap.clientWidth - 40;
+    var W = wrap.clientWidth - 36;
     if(W < 200) W = wrap.clientWidth;
-    var H = cv.clientHeight || 210, dpr = window.devicePixelRatio || 1;
+    var H = cv.clientHeight || 190, dpr = window.devicePixelRatio || 1;
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
     var ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
 
-    var padL = 44, padR = 18, padT = 16, padB = 26, cw = W - padL - padR, ch = H - padT - padB;
+    var padL = 42, padR = 14, padT = 14, padB = 24, cw = W - padL - padR, ch = H - padT - padB;
     var items = state.items, N = items.length;
     var targetPct = state.conf * 100;
 
-    var sage = cssVar("--sage"), gold = cssVar("--gold"), muted = cssVar("--ink-3"), line = cssVar("--line");
+    var sage = cssVar("--sage"), gold = cssVar("--gold-bright"), muted = cssVar("--ink-3"), line = cssVar("--line-soft");
 
-    // Compute running rate series
     var rates = [], hits = 0, minRate = 50;
     for(var i=0;i<N;i++){
       if(items[i].hit) hits++;
@@ -1078,7 +993,6 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
     function CX(idx){ return N <= 1 ? padL : padL + (idx / (N - 1)) * cw; }
     function CY(val){ return padT + (1 - (clamp(val, yMin, yMax) - yMin) / (yMax - yMin)) * ch; }
 
-    // Y gridlines
     var ticks = yMin === 50 ? [50, 70, 90, 100] : [yMin, Math.round((yMin + 100) / 2), 90, 100];
     ctx.font = "11px ui-monospace, Menlo, monospace";
     ctx.textAlign = "right"; ctx.textBaseline = "middle";
@@ -1090,23 +1004,20 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
       ctx.fillText(v + "%", padL - 6, y);
     });
 
-    // Gold dashed target line
     var ty = CY(targetPct);
     ctx.save();
     ctx.strokeStyle = gold; ctx.lineWidth = 1.8; ctx.setLineDash([5, 4]);
     ctx.beginPath(); ctx.moveTo(padL, ty); ctx.lineTo(W - padR, ty); ctx.stroke();
     ctx.restore();
     ctx.fillStyle = gold; ctx.textAlign = "left"; ctx.textBaseline = "bottom";
-    ctx.fillText(Math.round(targetPct) + "%", padL + 4, ty - 3);
+    ctx.fillText(Math.round(targetPct) + "%", padL + 4, ty - 2);
 
-    // X-axis endpoints
     ctx.fillStyle = muted; ctx.textBaseline = "top";
-    ctx.textAlign = "left"; ctx.fillText("1" + (state.lang==="zh" ? " 个" : ""), padL, padT + ch + 7);
-    ctx.textAlign = "right"; ctx.fillText((N || 0).toLocaleString() + (state.lang==="zh" ? " 个" : ""), W - padR, padT + ch + 7);
+    ctx.textAlign = "left"; ctx.fillText("1", padL, padT + ch + 6);
+    ctx.textAlign = "right"; ctx.fillText(N.toLocaleString() + (state.lang==="zh" ? " 个" : ""), W - padR, padT + ch + 6);
 
     if(N === 0) return;
 
-    // Curve (downsample gently if > 600 points for crisp rendering)
     ctx.strokeStyle = sage; ctx.lineWidth = 2.2; ctx.lineJoin = "round";
     ctx.beginPath();
     var step = N > 600 ? Math.ceil(N / 600) : 1;
@@ -1117,9 +1028,8 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
     if((N - 1) % step !== 0) ctx.lineTo(CX(N - 1), CY(rates[N - 1]));
     ctx.stroke();
 
-    // End dot
     ctx.fillStyle = sage;
-    ctx.beginPath(); ctx.arc(CX(N - 1), CY(rates[N - 1]), 4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(CX(N - 1), CY(rates[N - 1]), 3.8, 0, Math.PI * 2); ctx.fill();
   }
 
   function applyLang(){
@@ -1162,11 +1072,6 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
   document.querySelectorAll("#cPresets button").forEach(function(b){
     b.addEventListener("click", function(){ setConf(parseFloat(this.dataset.c)); });
   });
-  $("zRefGrid").addEventListener("click", function(e){
-    var btn = e.target.closest("[data-ref-c]");
-    if(!btn) return;
-    setConf(parseFloat(btn.dataset.refC));
-  });
 
   $("scenarioPresets").addEventListener("click", function(e){
     var btn = e.target.closest("[data-sc]");
@@ -1204,7 +1109,7 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
   $("chart").addEventListener("mousemove", function(e){
     var vis = state.items.slice(-60); if(!vis.length) return;
     var rect = this.getBoundingClientRect(), y = e.clientY - rect.top;
-    var padT = 26, ch = rect.height - 56, slots = Math.max(vis.length, 20);
+    var padT = 24, ch = rect.height - 50, slots = Math.max(vis.length, 20);
     var idx = Math.floor((y - padT) / (ch / slots));
     if(idx >= 0 && idx < vis.length){
       if(state.hoverIdx !== idx){ state.hoverIdx = idx; drawChart(); renderLatestTable(); }
@@ -1229,10 +1134,6 @@ footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);font-si
 
   var resizeT = null;
   window.addEventListener("resize", function(){ clearTimeout(resizeT); resizeT = setTimeout(function(){ drawChart(); drawConvergenceChart(); }, 100); });
-  if(window.matchMedia){
-    var mq = window.matchMedia("(prefers-color-scheme: dark)");
-    if(mq.addEventListener) mq.addEventListener("change", function(){ drawChart(); drawConvergenceChart(); });
-  }
 
   try { var saved = localStorage.getItem("mg-sampling-lang"); if(saved === "en" || saved === "zh") state.lang = saved; } catch(e){}
   for(var initI = 0; initI < 25; initI++) drawOneInterval();
