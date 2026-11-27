@@ -5,37 +5,37 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Exterior Angles of Polygons</title>
 <style>
-:root{--ink:#1d2433;--muted:#5b6475;--teal:#2a8c82;--navy:#152b5c;--bg:#f4f6f9;--card:#fff;--line:#d9dee7}
+:root{--ink:#21242C;--muted:#525760;--teal:#008A6E;--navy:#1865F2;--bg:#F7F8FA;--card:#FFFFFF;--line:#D6D8DA}
 *{box-sizing:border-box}
-body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink)}
-.wrap{max-width:1200px;margin:0 auto;padding:18px 22px}
-h1{font-size:26px;margin:0 0 2px}
+body{margin:0;font-family:"Lato",-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Hiragino Sans GB","Segoe UI","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1160px;margin:0 auto;padding:18px 22px}
+h1{font-size:26px;font-weight:800;margin:0 0 2px}
 .sub{color:var(--muted);margin:0 0 14px;font-size:15px}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 20px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:8px;box-shadow:0 1px 3px rgba(33,36,44,.06);padding:16px 20px}
 .controls{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-end}
 .lab{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
-.stepper{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;height:56px}
-.stepper button{width:50px;font-size:26px;border:0;background:#f7f8fb;cursor:pointer;color:var(--ink)}
-.stepper button:hover{background:#eceff5}
+.stepper{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;height:56px}
+.stepper button{width:50px;font-size:26px;border:0;background:#FFFFFF;cursor:pointer;color:var(--ink)}
+.stepper button:hover{background:#F0F1F4}
 .stepper .val{width:124px;text-align:center;padding-top:5px;border-left:1px solid var(--line);border-right:1px solid var(--line)}
 .val b{font-size:24px;display:block;line-height:1.1}
 .val small{color:var(--muted);font-size:12px}
 .zoom{flex:1;min-width:340px}
 .zrow{display:flex;gap:12px;align-items:center;height:56px}
-.btn{border:1px solid var(--line);background:#f7f8fb;border-radius:10px;padding:10px 16px;font-weight:600;font-size:15px;cursor:pointer;color:var(--ink);white-space:nowrap}
-.btn:hover{background:#eceff5}
+.btn{border:1px solid var(--line);background:#FFFFFF;border-radius:8px;padding:10px 16px;font-weight:700;font-size:15px;cursor:pointer;color:var(--ink);white-space:nowrap}
+.btn:hover{background:#F0F1F4}
 .btn.primary{background:var(--teal);color:#fff;border-color:var(--teal)}
 .btn.primary:hover{filter:brightness(1.06)}
 input[type=range]{flex:1;accent-color:var(--teal);cursor:pointer}
 .pct{width:58px;text-align:right;font-weight:700;font-size:16px}
-.sum{background:var(--navy);color:#fff;border-radius:12px;padding:8px 18px;text-align:right;min-width:200px}
-.sum .lab{color:#b9c6e6;margin:0;font-size:11px}
-.sum b{font-size:32px;font-family:Georgia,"Times New Roman",serif;line-height:1.1}
+.sum{background:var(--navy);color:#fff;border-radius:8px;padding:8px 18px;text-align:right;min-width:200px}
+.sum .lab{color:rgba(255,255,255,.82);margin:0;font-size:11px}
+.sum b{font-size:32px;font-variant-numeric:tabular-nums;line-height:1.1}
 .eq{margin-top:14px;font-size:17px;min-height:26px;line-height:1.6}
 .eq .t{font-weight:700}
 .opts{display:flex;gap:20px;flex-wrap:wrap;margin-top:8px;color:var(--muted);font-size:14px;align-items:center}
 .opts label{cursor:pointer;user-select:none}
-svg{width:100%;height:auto;display:block;background:#fff;border:1px solid var(--line);border-radius:14px;margin-top:14px;touch-action:none;user-select:none}
+svg{width:100%;height:auto;display:block;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 1px 3px rgba(33,36,44,.06);margin-top:14px;touch-action:none;user-select:none}
 .hint{color:var(--muted);font-size:13px;margin-top:8px}
 .warn{color:#c0392b;font-weight:600}
 [data-drag]{cursor:grab}
